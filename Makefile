@@ -41,8 +41,8 @@ clean_objs:
 	-$(DEL) $(APP)
 
 push:
-	echo 'Comments: $(COMMENTS)'
 	make clean_objs -s
+	echo 'Comments: $(COMMENTS)'
 	git add .gitignore
 	git add *
 	git commit -m "$(COMMENTS)"
