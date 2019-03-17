@@ -8,6 +8,7 @@ CXXC = g++ # further icc for high performance
 CXXFLAGS = -std=c++11 -O2
 LINKFLAGS = 
 
+COMMENTS = ''
 DEL = rm -rf
 
 default:
@@ -38,3 +39,11 @@ clean_objs:
 	echo 'Cleaning objects ...'
 	-$(DEL) *.o
 	-$(DEL) $(APP)
+
+push:
+	echo 'Comments: $(COMMENTS)'
+	make clean_objs -s
+	git add .gitignore
+	git add *
+	git commit -m "$(COMMENTS)"
+	git push origin master
