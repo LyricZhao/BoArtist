@@ -14,7 +14,8 @@ private:
     int n_sphere, width, height, samples; std:: string output;
     Ray camera; Sphere *spheres; Color_F *pixels;
 
-    Color_F radiance(Ray ray, int id);
+    Color_F radiance(const Ray &ray, int depth);
+    bool intersect(const Ray &ray, double &t, int &id);
 public:    
     Renderer(): camera(Vector3D(), Vector3D()), pixels(nullptr) {}
     ~Renderer() {
