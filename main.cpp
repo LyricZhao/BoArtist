@@ -1,11 +1,13 @@
-/* 
- * BoArtist, a realistic image render
- * Author: Chenggang Zhao, CST 75, Tsinghua University
- * Date: Mar 17, 2019
- */
 
 # include <iostream>
+# include <string>
+
+# include "renderer.h"
 
 int main(int argc, char** argv) {
+    Renderer renderer;
+    renderer.load();
+    renderer.render();
+    renderer.save();
     return 0;
 }

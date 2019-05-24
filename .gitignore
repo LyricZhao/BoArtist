@@ -1,4 +1,5 @@
 *.o
 outputs/*
 boartist
+.DS_Store
 
