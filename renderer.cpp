@@ -4,6 +4,9 @@
 # include "renderer.h"
 # include "utils.h"
 
+# define TO_RENDER smallpt_v0
+# include "scenes/smallpt_v0.h"
+
 void Renderer:: load() {
     width = TO_RENDER:: width, height = TO_RENDER:: height;
     n_sphere = sizeof(TO_RENDER:: spheres) / sizeof(Sphere);
@@ -17,13 +20,13 @@ bool Renderer:: intersect(const Ray &ray, double &t, int &id) {
     double d; t = inf;
     for(int i = 0; i < n_sphere; ++ i) {
         d = spheres[i].intersect(ray);
-        if(d < t) t = d, id = i;
+        if(d && d < t) t = d, id = i;
     }
     return t < inf;
 }
 
 Color_F Renderer:: radiance(const Ray &ray, int depth) {
-    double t; int id, in; ++ depth;
+    double t; int id, in;
     if(!intersect(ray, t, id)) return Color_F();
     const Sphere &sphere = spheres[id];
     Vector3D x = ray.o + ray.d * t;
@@ -31,7 +34,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth) {
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     Color_F f = sphere.color;
     double mx = f.max();
-    if(depth > 5) {
+    if(++ depth > 5) {
         if(rand01() < mx) f /= mx;
         else return sphere.emission;
     }
@@ -61,19 +64,21 @@ Color_F Renderer:: radiance(const Ray &ray, int depth) {
 }
 
 void Renderer:: render() {
-    Vector3D cx = Vector3D(width * .5135 / height);
-    Vector3D cy = cx.cross(camera.d).norm() * .5135;
+    Vector3D cx = Vector3D(width * .5 / height);
+    Vector3D cy = cx.cross(camera.d).norm() * .5;
+    // #pragma omp parallel for schedule(dynamic, 1)
     for(int y = 0; y < height; ++ y) {
+        fprintf(stderr, "\rRendering %f%%", 100. * y / height);
         for(int x = 0; x < width; ++ x) {
-            int index = (height - y - 1) * width + x;
+            int index = (height - y - 1) * width + (width - x - 1);
             for(int sy = 0; sy < 2; ++ sy) {
                 for(int sx = 0; sx < 2; ++ sx) {
                     Color_F pixel;
                     for(int s = 0; s < samples; ++ s) {
-                        double r1 = 2 * rand01(), dx = r1 < 1 ? sqrt(r1 - 1) : 1 - sqrt(2 - r1);
-                        double r2 = 2 * rand01(), dy = r2 < 1 ? sqrt(r2 - 1) : 1 - sqrt(2 - r2);
-                        Vector3D d = cx * (((sx + .5 + dx) / 2 + x) / width - .5) + cy * (((sy + .5 + dy) / 2 + y) / height - .5) + camera.d;
-                        pixel += radiance(Ray(camera.o + d * 140, d.norm()), 0) / samples;
+                        double r1 = 2 * rand01(), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
+                        double r2 = 2 * rand01(), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
+                        Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
+                        pixel += radiance(Ray(camera.o + d * 120, d.norm()), 0) / samples;
                     }
                     pixels[index] += pixel.clamp() / 4.;
                 }
@@ -85,8 +90,8 @@ void Renderer:: render() {
 
 void Renderer:: save() {
     FILE *file = fopen((output + ".ppm").c_str(), "w");
-    fprintf(file, "P3\n%d %d\n%d\n", width, height, 255);
+    fprintf(file, "P6\n%d %d\n%d\n", width, height, 255);
     for(int i = 0; i < width * height; ++ i)
-        fprintf(file, "%d %d %d", pixels[i].r(), pixels[i].g(), pixels[i].b());
+        fprintf(file, "%c%c%c", pixels[i].r(), pixels[i].g(), pixels[i].b());
     return;
 }

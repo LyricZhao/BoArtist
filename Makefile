@@ -1,19 +1,19 @@
-APP = boartist
+APP = main
 
-OBJECTS = main.o
+OBJECTS = main.o renderer.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
 
 CXXC = g++ # further icc for high performance
-CXXFLAGS = -std=c++11 -O2
-LINKFLAGS = 
+CXXFLAGS = -std=c++11 -O3
+LINKFLAGS = -O3
 
 COMMENTS = ''
 DEL = rm -rf
 
 default:
-	make clean_objs -s
-	make $(APP) -s
+	make clean_objs
+	make $(APP)
 
 $(APP): $(OBJECTS) Makefile
 	echo 'Linking: $(APP)' && \
@@ -27,9 +27,13 @@ $(APP).o: $(APP).cpp Makefile
 	echo 'Compiling: $*.o' && \
 	$(CXXC) $(CXXFLAGS) -c $*.cpp -o $*.o
 
-clean_sources:
-	echo 'Cleaning sources ...'
-	-$(DEL) $(SOURCES)
+run:
+	make
+	./$(APP)
+
+clean:
+	make clean_objs
+	make clean_outputs
 
 clean_outputs:
 	echo 'Cleaning outputs ...'
