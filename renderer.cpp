@@ -4,8 +4,9 @@
 # include "renderer.h"
 # include "utils.h"
 
-# define TO_RENDER smallpt_v0
+# define TO_RENDER nightsky
 # include "scenes/smallpt_v0.h"
+# include "scenes/nightsky.h"
 
 void Renderer:: load() {
     width = TO_RENDER:: width, height = TO_RENDER:: height;
@@ -79,7 +80,7 @@ void Renderer:: render() {
                         double r1 = 2 * erand48(seed), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
                         double r2 = 2 * erand48(seed), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
                         Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
-                        pixel += radiance(Ray(camera.o + d * 120, d.norm()), 0, seed);
+                        pixel += radiance(Ray(camera.o + d * 140, d.norm()), 0, seed);
                     }
                     pixels[index] += (pixel / samples).clamp() / 4.;
                 }
