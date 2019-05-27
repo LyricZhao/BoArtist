@@ -5,11 +5,11 @@
 
 namespace smallpt_v0 {
 
-int width = 512, height = 512, samples = 2;
+int width = 512, height = 512, samples = 100;
 
 Ray camera(Vector3D(70, 32, 280), Vector3D(-0.15, 0.05, -1).norm());
 
-Sphere spheres[] = {//Scene: radius, position, emission, color, material 
+Sphere spheres[] = {
    Sphere(1e5, Vector3D( 1e5+1,40.8,81.6), Color_F(),Color_F(.1,.25,.25),DIFF),//Left 
    Sphere(1e5, Vector3D(-1e5+99,40.8,81.6),Color_F(),Color_F(.25,.75,.25),DIFF),//Rght 
    Sphere(1e5, Vector3D(50,40.8, 1e5),     Color_F(),Color_F(.75,.75,.75),DIFF),//Back 
@@ -22,7 +22,7 @@ Sphere spheres[] = {//Scene: radius, position, emission, color, material
    Sphere(600, Vector3D(50,681.6-.27,81.6),Color_F(12,12,12),  Color_F(), DIFF) //Lite 
 }; 
 
-const char output[] = "smallpt_v0";
+const char output[] = "outputs/smallpt_v0";
 };
 
 # endif

@@ -1,6 +1,7 @@
 # ifndef __BASE_H__
 # define __BASE_H__
 
+# include <cassert>
 # include <cmath>
 # include <iostream>
 
@@ -28,13 +29,11 @@ public:
     inline double dot(const Vector3D &b) const { return x * b.x + y * b.y + z * b.z; }
     inline Vector3D mul(const Vector3D &b) const { return Vector3D(x * b.x, y * b.y, z * b.z); }
     inline Vector3D cross(const Vector3D &b) const { return Vector3D(y * b.z - z * b.y, z * b.x - x * b.z, x * b.y - y * b.x); }
-    /* Q */ inline Vector3D reflect(const Vector3D &n) const { return (*this) - n * 2. * dot(n); }
-    /* Q */ inline Vector3D refract(const Vector3D n, double n_i, double n_r) const {
-        double cos_i = norm().dot(n), n_ir = n_i / n_r, cos_r2 = 1. - n_ir * n_ir * (1 - cos_i * cos_i);
-        if(cos_r2 <= 0) return Vector3D();
-        double cos_r = sqrt(cos_r2);
-        if (cos_i > 0) cos_r = -cos_r;
-        return ((*this) * n_ir - n * (n_ir * cos_i + cos_r)).norm();
+    inline Vector3D reflect(const Vector3D &n) const { return (*this) - n * 2. * dot(n); }
+    inline Vector3D refract(const Vector3D n, double n_i, double n_r) const {
+        double cos_i = dot(n), n_ir = n_i / n_r, cos2_r = 1. - n_ir * n_ir * (1 - cos_i * cos_i);
+        if(cos2_r <= 0) return Vector3D();
+        return ((*this) * n_ir - n * (n_ir * cos_i + sqrt(cos2_r))).norm();
     }
 
     inline int r() { return gray2int(x); }

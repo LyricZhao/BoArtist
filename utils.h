@@ -4,8 +4,8 @@
 # include <cmath>
 # include <cstdlib>
 
-# define eps 1e-4
-# define inf 1e30
+# define eps 1e-6
+# define inf 1e20
 
 inline double rand01() {
     return double(rand()) / RAND_MAX;

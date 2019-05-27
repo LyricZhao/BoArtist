@@ -4,13 +4,13 @@
 # include "base.h"
 
 struct Sphere {
-    double r, n_s;
+    double r, ior;
     Vector3D pos;
     Color_F emission, color;
     ReflectType reflect;
 
-    Sphere(double _r, Vector3D _pos, Color_F _emission, Color_F _color, ReflectType _reflect, double _n_s=1.5):
-        r(_r), n_s(_n_s), pos(_pos), emission(_emission), color(_color), reflect(_reflect) { }
+    Sphere(double _r, Vector3D _pos, Color_F _emission, Color_F _color, ReflectType _reflect, double _ior=1.5):
+        r(_r), ior(_ior), pos(_pos), emission(_emission), color(_color), reflect(_reflect) { }
     inline double intersect(const Ray &ray) {
         Vector3D z = pos - ray.o;
         double b, det, t;

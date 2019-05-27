@@ -19,15 +19,15 @@ void Renderer:: load() {
 bool Renderer:: intersect(const Ray &ray, double &t, int &id) {
     double d; t = inf;
     for(int i = 0; i < n_sphere; ++ i) {
-        d = spheres[i].intersect(ray);
-        if(d && d < t) t = d, id = i;
+        if((d = spheres[i].intersect(ray)) && d < t)
+            t = d, id = i;
     }
     return t < inf;
 }
 
 Color_F Renderer:: radiance(const Ray &ray, int depth) {
-    double t; int id, in;
-    if(!intersect(ray, t, id)) return Color_F();
+    double t; int id, in = 0;
+    if(depth > 10 || !intersect(ray, t, id)) return Color_F();
     const Sphere &sphere = spheres[id];
     Vector3D x = ray.o + ray.d * t;
     Vector3D n = (x - sphere.pos).norm();
@@ -40,9 +40,9 @@ Color_F Renderer:: radiance(const Ray &ray, int depth) {
     }
     switch (sphere.reflect) {
         case DIFF: {
-            double r1 = 2 * M_PI * rand01(), r2 = rand01(), s_r2 = sqrt(r2);
+            double r1 = 2 * M_PI * rand01(), r2 = M_PI * rand01();
             Vector3D w = nl, u = (fabs(w.x) > .1 ? Vector3D(0, 1): Vector3D(1)).cross(w).norm(), v = w.cross(u);
-            Vector3D d = (u * cos(r1) * s_r2 + v * sin(r1) * s_r2 + w * sqrt(1 - r2)).norm();
+            Vector3D d = ((u * cos(r1) + v * sin(r1)) * cos(r2) + w * sin(r2)).norm();
             return Vector3D(sphere.emission) + f.mul(radiance(Ray(x, d), depth));
         }
         case SPEC: {
@@ -51,13 +51,13 @@ Color_F Renderer:: radiance(const Ray &ray, int depth) {
         }
         case REFR: {
             Ray reflect_ray = Ray(x, ray.d.reflect(n));
-            Vector3D d = ray.d.refract(n, in ? 1 : sphere.n_s, in ? sphere.n_s : 1);
+            Vector3D d = ray.d.refract(nl, in ? 1 : sphere.ior, in ? sphere.ior : 1);
             if(d.length2() < eps) return sphere.emission + f.mul(radiance(reflect_ray, depth));
-            double a = sphere.n_s - 1, b = sphere.n_s + 1, r0 = a * a / (b * b), c = 1 - (in ? ray.d.dot(nl) : d.dot(n));
+            double a = sphere.ior - 1, b = sphere.ior + 1, r0 = a * a / (b * b), c = 1 - (in ? -ray.d.dot(nl) : d.dot(n));
             double re = r0 + (1 - r0) * c * c * c * c * c, tr = 1 - re, p = .25 + .5 * re, rp = re / p, tp = tr / (1 - p);
             return sphere.emission + f.mul(depth > 2 ?
-            (rand01() < p ? radiance(reflect_ray, depth) * rp : radiance(Ray(x, d), depth) * tp) :
-            (radiance(reflect_ray, depth) * re + radiance(Ray(x, d), depth) * tr));
+                (rand01() < p ? radiance(reflect_ray, depth) * rp : radiance(Ray(x, d), depth) * tp) :
+                (radiance(reflect_ray, depth) * re + radiance(Ray(x, d), depth) * tr));
         }
         default: assert(0);
     }
@@ -66,7 +66,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth) {
 void Renderer:: render() {
     Vector3D cx = Vector3D(width * .5 / height);
     Vector3D cy = cx.cross(camera.d).norm() * .5;
-    // #pragma omp parallel for schedule(dynamic, 1)
+    #pragma omp parallel for schedule(dynamic, 1)
     for(int y = 0; y < height; ++ y) {
         fprintf(stderr, "\rRendering %f%%", 100. * y / height);
         for(int x = 0; x < width; ++ x) {
@@ -78,9 +78,9 @@ void Renderer:: render() {
                         double r1 = 2 * rand01(), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
                         double r2 = 2 * rand01(), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
                         Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
-                        pixel += radiance(Ray(camera.o + d * 120, d.norm()), 0) / samples;
+                        pixel += radiance(Ray(camera.o + d * 120, d.norm()), 0);
                     }
-                    pixels[index] += pixel.clamp() / 4.;
+                    pixels[index] += (pixel / samples).clamp() / 4.;
                 }
             }
         }
