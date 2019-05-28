@@ -2,16 +2,15 @@
 # define __SPHERE_H__
 
 # include "base.h"
+# include "object.h"
 
-struct Sphere {
-    double r, ior;
-    Vector3D pos;
-    Color_F emission, color;
-    ReflectType reflect;
+class Sphere: public Object {
+    double r; Vector3D pos;
 
-    Sphere(double _r, Vector3D _pos, Color_F _emission, Color_F _color, ReflectType _reflect, double _ior=1.5):
-        r(_r), ior(_ior), pos(_pos), emission(_emission), color(_color), reflect(_reflect) { }
-    inline double intersect(const Ray &ray) {
+    Sphere(double _r, Vector3D _pos, double _ior, Texture _texture, ReflectType _reflect, Color_F _emission):
+        r(_r), pos(_pos), Object(_reflect, _ior, _texture, _emission) { }
+
+    virtual double intersect(const Ray &ray) {
         Vector3D z = pos - ray.o;
         double b, det, t;
         b = z.dot(ray.d); det = b * b + r * r - z.length2();

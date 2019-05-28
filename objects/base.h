@@ -55,7 +55,13 @@ public:
     Ray(Vector3D _o, Vector3D _d): o(_o), d(_d) {}
 };
 
+class Range {
+public:
+    Vector3D l, r;
+    Range(Vector3D _l, Vector3D _r): l(_l), r(_r) {}
+};
+
 enum ReflectType { DIFF, SPEC, REFR};
-typedef unsigned int Color_U;
+typedef unsigned char Color_U;
 
 # endif
