@@ -2,6 +2,7 @@
 # define __OBJECTS_API_H__
 
 # include "base.h"
+# include "object.h"
 # include "sphere.h"
 # include "plane.h"
 

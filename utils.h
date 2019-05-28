@@ -4,7 +4,7 @@
 # include <cmath>
 # include <cstdlib>
 
-# define eps 1e-6
+# define eps 1e-8
 # define inf 1e20
 
 inline double rand01() {

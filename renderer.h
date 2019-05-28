@@ -8,8 +8,8 @@
 
 class Renderer {
 private:
-    int n_sphere, width, height, samples; std:: string output;
-    Ray camera; Sphere *spheres; Color_F *pixels;
+    int n_objects, width, height, samples; std:: string output;
+    Ray camera; Object* *objects; Color_F *pixels;
 
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);
     bool intersect(const Ray &ray, double &t, int &id);

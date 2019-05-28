@@ -35,13 +35,18 @@ public:
         if(cos2_r <= 0) return Vector3D();
         return ((*this) * n_ir - n * (n_ir * cos_i + sqrt(cos2_r))).norm();
     }
+    inline void div(const Vector3D &cx, const Vector3D &cy, double &x, double &y) const {
+        x = dot(cx) / cx.dot(cx);
+        y = dot(cy) / cy.dot(cy);
+        return;
+    }
 
-    inline int r() { return gray2int(x); }
-    inline int g() { return gray2int(y); }
-    inline int b() { return gray2int(z); }
-    inline Vector3D clamp() { return Vector3D(::clamp(x), ::clamp(y), ::clamp(z)); }
+    inline int r() const { return gray2int(x); }
+    inline int g() const { return gray2int(y); }
+    inline int b() const { return gray2int(z); }
+    inline Vector3D clamp() const { return Vector3D(::clamp(x), ::clamp(y), ::clamp(z)); }
 
-    void print() {
+    void print() const {
         std:: cout << "Vector3D: " << x << ", " << y << ", " << z << std:: endl;
         return;
     }
@@ -53,12 +58,14 @@ class Ray {
 public:
     Vector3D o, d;
     Ray(Vector3D _o, Vector3D _d): o(_o), d(_d) {}
+    void print() const { o.print(); d.print(); return; }
 };
 
 class Range {
 public:
     Vector3D l, r;
     Range(Vector3D _l, Vector3D _r): l(_l), r(_r) {}
+    void print() const { l.print(); r.print(); return; }
 };
 
 enum ReflectType { DIFF, SPEC, REFR};

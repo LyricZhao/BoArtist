@@ -12,7 +12,6 @@ COMMENTS = ''
 DEL = rm -rf
 
 default:
-	make clean_objs
 	make $(APP)
 
 $(APP): $(OBJECTS) Makefile
@@ -33,7 +32,7 @@ run:
 
 clean:
 	make clean_objs
-	make clean_outputs
+	# make clean_outputs
 
 clean_outputs:
 	echo 'Cleaning outputs ...'

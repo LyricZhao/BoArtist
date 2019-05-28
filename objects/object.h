@@ -13,8 +13,11 @@ public:
         reflect(_reflect), ior(_ior), texture(_texture), emission(_emission) {}
     ~Object() { }
 
-    virtual double intersect(const Ray &ray);
-    virtual Range range();
+    virtual double intersect(const Ray &ray) const = 0;
+    virtual Vector3D norm(const Vector3D &x) const = 0;
+    // virtual Range range() const = 0;
+
+    virtual Color_F color(const Vector3D &x) const = 0;
 };
 
 # endif

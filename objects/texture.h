@@ -4,6 +4,11 @@
 # include <string>
 
 # include "base.h"
+
+# ifndef __MAIN_CPP_COMPILE__
+    # define STB_IMAGE_IMPLEMENTATION
+# endif
+
 # include "../stb/stb_image.h"
 
 class Texture {
@@ -27,18 +32,21 @@ public:
         return;
     }
 
-    bool none() {
+    bool none() const {
         return width == 0;
     }
 
-    Color_F pixel(int x, int y) {
+    Color_F pixel(int x, int y) const {
         int index = (y * width + x) * channel;
         return Color_F(buffer[index], buffer[index + 1], buffer[index + 3]) / 255.;
     }
 
-    Color_F get(double dx, double dy) {
+    Color_F get(double dx, double dy) const {
         if(none()) return color;
-        /* TODO */
+        int x = (int)(dx) % width, y = (int)(dy) % height;
+        if(x < 0) x += width;
+        if(y < 0) y += height;
+        return pixel(x, y);
     }
 };
 
