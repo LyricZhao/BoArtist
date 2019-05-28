@@ -13,6 +13,7 @@ void Renderer:: load() {
     objects = TO_RENDER:: objects, samples = TO_RENDER:: samples, camera = TO_RENDER:: camera;
     output = std:: string(TO_RENDER:: output);
     pixels = (Color_F*) std:: malloc(sizeof(Color_F) * width * height);
+    for(int i = 0; i < n_objects; ++ i) objects[i] -> load_texture();
     return;
 }
 

@@ -16,13 +16,14 @@ public:
     int width, height, channel;
     Color_F color; stbi_uc *buffer; std:: string path;
 
-    Texture(std:: string _path="", Color_F _color=Color_F()): path(_path), width(0), height(0), buffer(nullptr), color(_color) {}
+    Texture(std:: string _path="", Color_F _color=Color_F()): path(_path), width(0), height(0), buffer(nullptr), color(_color) { }
 
     ~Texture() {
-        if (buffer != nullptr) {
+        if(buffer != nullptr) {
             stbi_image_free(buffer);
             buffer = nullptr;
         }
+        return;
     }
 
     void load() {
@@ -43,7 +44,7 @@ public:
 
     Color_F get(double dx, double dy) const {
         if(none()) return color;
-        int x = (int)(dx) % width, y = (int)(dy) % height;
+        int x = (int)(dx * 20) % width, y = (int)(dy * 20) % height;
         if(x < 0) x += width;
         if(y < 0) y += height;
         return pixel(x, y);

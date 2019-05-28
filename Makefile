@@ -32,7 +32,12 @@ run:
 
 clean:
 	make clean_objs
-	# make clean_outputs
+
+sync:
+	rsync --exclude ".vscode" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist im:~/
+
+sync_output:
+	rsync -azv im:~/BoArtist/outputs ./
 
 clean_outputs:
 	echo 'Cleaning outputs ...'
