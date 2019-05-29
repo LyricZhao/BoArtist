@@ -4,20 +4,47 @@
 # include "base.h"
 # include "object.h"
 
+static inline void update_solve(double &x, double z) { if(z > 0 && z < x) x = z; return;}
+
+# define L_SQRT_3 1.7320508076
+
 class Equation3D {
 public:
     Vector2D a, b, c, d;
     Equation3D(Vector2D _a=Vector2D(), Vector2D _b=Vector2D(), Vector2D _c=Vector2D(), Vector2D _d=Vector2D()): a(_a), b(_b), c(_c), d(_d) { }
 
     double solve(const Vector2D &pos, const Vector2D &dir) {
-        double t, na, nb, nc, nd;
+        double ret = inf, na, nb, nc, nd;
         na = a.x * dir.y - a.y * dir.x;
         nb = b.x * dir.y - b.y * dir.x;
         nc = c.x * dir.y - c.y * dir.x;
         nd = d.x * dir.y - d.y * dir.x - pos.x * dir.y + pos.y * dir.x;
         /* Now the problem is to solve: na * t^3 + nb * t^2 + nc * t + nd = 0 */
-        
-        return t;
+
+        /* Shengjin Method */
+        double A = nb * nb - 3 * na * nc, B = nb * nc - 9 * na * nd, C = nc * nc - 3 * nb * nd;
+        double delta = B * B - 4 * A * C;
+        if(fabs(A - B) < 0) {
+            update_solve(ret, -nc / nb);
+        } else if(delta > 0) {
+            double s_delta = sqrt(delta);
+            double y1 = pow(A * nb + 1.5 * na * (-B + s_delta), 1. / 3);
+            double y2 = pow(A * nb + 1.5 * na * (-B - s_delta), 1. / 3);
+            update_solve(ret, (-nb - (y1 + y2)) / (3. * na));
+            if(fabs(y1 - y2) < eps)
+                update_solve(ret, (-2 * nb + y1 + y2) / (6. * na));
+        } else if(fabs(delta) < eps) {
+            double k = B / A;
+            update_solve(ret, -nb / na + k);
+            update_solve(ret, -k / 2);
+        } else if(delta < 0) {
+            double s_A = sqrt(A), t = (2 * A * nb - 3 * na * B) / (2 * s_A * A), theta = acos(t) / 3;
+            double cos_theta = cos(theta), sin_theta = sin(theta);
+            update_solve(ret, (-nb - 2 * s_A * cos_theta) / (3 * na));
+            update_solve(ret, (-nb + s_A * (cos_theta + L_SQRT_3 * sin_theta)) / (3 * na));
+            update_solve(ret, (-nb + s_A * (cos_theta - L_SQRT_3 * sin_theta)) / (3 * na));
+        }
+        return ret;
     }
 };
 

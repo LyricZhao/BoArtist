@@ -5,5 +5,6 @@
 # include "object.h"
 # include "sphere.h"
 # include "plane.h"
+# include "bezier.h"
 
 # endif
