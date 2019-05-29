@@ -4,8 +4,6 @@
 # include "base.h"
 # include "object.h"
 
-static inline void update_solve(double &x, double z) { if(z > 0 && z < x) x = z; return;}
-
 # define L_SQRT_3 1.7320508076
 
 class Equation3D {

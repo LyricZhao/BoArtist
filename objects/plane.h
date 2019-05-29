@@ -13,7 +13,9 @@ public:
 
     virtual double intersect(const Ray &ray) const {
         double t = ray.d.dot(n);
-        return t < eps ? 0 : (1 - ray.o.dot(n)) / t;
+        if(t < 0) return 0;
+        t = (1 - ray.o.dot(n)) / t;
+        return t < 0 ? 0 : t;
     }
 
     virtual Vector3D norm(const Vector3D &x) const {

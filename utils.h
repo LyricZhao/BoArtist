@@ -14,8 +14,14 @@ inline double rand01() {
 inline double clamp(double x) {
     return x < 0 ? 0 : (x > 1 ? 1 : x);
 }
+
 inline int gray2int(double x) {
     return int(pow(clamp(x), 1 / 2.2) * 255 + .5);
+}
+
+inline void update_solve(double &x, double z) {
+    if(z > 0 && z < x) x = z;
+    return;
 }
 
 # endif
