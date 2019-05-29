@@ -10,7 +10,7 @@
 class Vector3D {
 public:
     double x, y, z;
-    Vector3D(double _x=0, double _y=0, double _z=0): x(_x), y(_y), z(_z) {}
+    Vector3D(double _x=0, double _y=0, double _z=0): x(_x), y(_y), z(_z) { }
 
     inline Vector3D operator - () const { return Vector3D(-x, -y, -z); }
     inline Vector3D operator + (const Vector3D &b) const { return Vector3D(x + b.x, y + b.y, z + b.z); }
@@ -52,6 +52,25 @@ public:
     }
 };
 
+class Vector2D {
+public:
+    double x, y;
+    Vector2D(double _x=0, double _y=0): x(_x), y(_y) { }
+
+    inline Vector2D operator - () const { return Vector2D(-x, -y); }
+    inline Vector2D operator + (const Vector2D &b) const { return Vector2D(x + b.x, y + b.y); }
+    inline Vector2D operator - (const Vector2D &b) const { return Vector2D(x - b.x, y - b.y); }
+    inline Vector2D operator * (double c) const { return Vector2D(x * c, y * c); }
+    inline Vector2D operator / (double c) const { return Vector2D(x / c, y / c); }
+    inline Vector2D& operator += (const Vector2D &b) { return *this = *this + b; }
+    inline Vector2D& operator -= (const Vector2D &b) { return *this = *this - b; }
+    inline Vector2D& operator /= (double c) { return *this = *this / c; }
+    inline Vector2D& operator *= (double c) { return *this = *this * c; }
+
+    inline double length() const { return sqrt(x * x + y * y); }
+    inline double length2() const { return x * x + y * y; }
+};
+
 typedef Vector3D Color_F;
 
 class Ray {
@@ -61,10 +80,18 @@ public:
     void print() const { o.print(); d.print(); return; }
 };
 
-class Range {
+class Range1D {
+public:
+    double l, r;
+    Range1D(double _l, double _r): l(_l), r(_r) { }
+ 
+    inline bool in_range(double t) { return l <= t && t <= r; }
+};
+
+class Range3D {
 public:
     Vector3D l, r;
-    Range(Vector3D _l, Vector3D _r): l(_l), r(_r) {}
+    Range3D(Vector3D _l, Vector3D _r): l(_l), r(_r) {}
     void print() const { l.print(); r.print(); return; }
 };
 

@@ -2,4 +2,5 @@
 outputs/*
 boartist
 .DS_Store
+.vscode
 
