@@ -21,6 +21,9 @@ public:
     inline Vector3D& operator -= (const Vector3D &b) { return *this = *this - b; }
     inline Vector3D& operator /= (double c) { return *this = *this / c; }
     inline Vector3D& operator *= (double c) { return *this = *this * c; }
+    inline Vector3D operator + (double c) { return Vector3D(x + c, y + c, z + c); }
+    inline Vector3D operator - (double c) { return Vector3D(x - c, y - c, z - c); }
+    inline bool operator <= (const Vector3D &b) const { return (x <= b.x && y <= b.y && z <= b.z); }
 
     inline Vector3D norm() const { return (*this) / length(); }
     inline double max() const { return std:: max(std:: max(x, y), z); }

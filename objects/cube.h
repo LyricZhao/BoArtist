@@ -6,20 +6,32 @@
 
 class Cube: public Object {
 public:
-    Vector3D o, x, y, z, ux, uy, uz, t_norm; bool has_norm;
+    Vector3D o, x, y, z, ux, uy, uz, norms[6];
+    Vector3D range_l, range_r;
 
     Cube(Vector3D _o, Vector3D _x, Vector3D _y, Vector3D _z, ReflectType _reflect, double _ior, Texture _texture, Color_F _emission):
-        o(_o), x(_x), y(_y), z(_z), Object(_reflect, _ior, _texture, _emission) { ux = x - o, uy = y - o, uz = z - o; }
+        o(_o), x(_x), y(_y), z(_z), range_l(Vector3D(inf, inf, inf)), range_r(Vector3D(-inf, -inf, -inf)), Object(_reflect, _ior, _texture, _emission) {
+            ux = x - o, uy = y - o, uz = z - o;
+            norms[0] = uy.cross(ux).norm(), norms[1] = ux.cross(uy).norm();
+            norms[2] = ux.cross(uz).norm(), norms[3] = uz.cross(ux).norm();
+            norms[4] = uz.cross(uy).norm(), norms[5] = uy.cross(uz).norm();
+            upd_mnx(o), upd_mnx(x), upd_mnx(y), upd_mnx(z);
+            upd_mnx(x + uy), upd_mnx(x + uz), upd_mnx(y + uz), upd_mnx(x + uy + uz);
+            return;
+    }
+
+    void upd_mnx(const Vector3D &v) {
+        upd_min(range_l.x, v.x), upd_max(range_r.x, v.x);
+        upd_min(range_l.y, v.y), upd_max(range_r.y, v.y);
+        upd_min(range_l.z, v.z), upd_max(range_r.z, v.z);
+        return;
+    }
     
-    void cross_t(double &ut, const Vector3D &a, const Vector3D &b, const Vector3D &c, const Ray &ray) {
-        Vector3D n = (b - a).cross(c - a);
-        n /= n.dot(a);
+    void cross_t(double &ut, const Vector3D &n, const Vector3D &a, const Ray &ray) {
         double t = ray.d.dot(n);
-        if(t < 0) return;
-        t = (1 - ray.o.dot(n)) / t;
-        if(t > 0 && t < ut) {
-            ut = t, t_norm = n, has_norm = true;
-        }
+        if(fabs(t) < eps) return;
+        ut = ((a - ray.o).dot(n)) / t;
+        if(ut < 0) ut = 0;
         return;
     }
 
@@ -28,20 +40,48 @@ public:
         return texture.color;
     }
 
-    virtual Vector3D norm(const Vector3D &x) {
-        assert(has_norm);
-        return t_norm;
+    bool judge_in_range(const Vector3D &v) {
+        // range_l.print();
+        // range_r.print();
+        // v.print();
+        return range_l - eps <= v && v <= range_r + eps;
     }
 
-    virtual double intersect(const Ray &ray) {
-        double t = inf; has_norm = false;
-        cross_t(t, o     , x     , y     , ray); // down
-        cross_t(t, o + uz, x + uz, y + uz, ray); // up
-        cross_t(t, o     , x     , z     , ray); // front
-        cross_t(t, o + uy, x + uy, z + uy, ray); // back
-        cross_t(t, o     , z     , y     , ray); // left
-        cross_t(t, o + ux, z + ux, y + ux, ray); // right
-        return t < inf ? t : 0;
+    /* Woo Method */
+    virtual double intersect(const Ray &ray, Vector3D &gn) {
+        // std:: cout << std:: endl;
+        // ray.print();
+        double t[6];
+        t[0] = t[1] = t[2] = t[3] = t[4] = t[5] = 0;
+        cross_t(t[0], norms[0], o     , ray); // down
+        cross_t(t[1], norms[1], o + uz, ray); // up
+        cross_t(t[2], norms[2], o     , ray); // front
+        cross_t(t[3], norms[3], o + uy, ray); // back
+        cross_t(t[4], norms[4], o     , ray); // left
+        cross_t(t[5], norms[5], o + ux, ray); // right
+        double t_min_f = 0;
+        for(int i = 0; i < 3; ++ i) {
+            double v1 = t[i << 1], v2 = t[(i << 1) | 1];
+            if(v1 > eps && v2 > eps) {
+                upd_max(t_min_f, std:: min(v1, v2));
+            }
+        }
+        if (t_min_f > eps && judge_in_range(ray.o + ray.d * t_min_f)) {
+            for(int i = 0; i < 6; ++ i) if(fabs(t_min_f - t[i]) < eps) {
+                gn = norms[i]; break;
+            }
+            return t_min_f;
+        }
+        // exit(0);
+        return 0;
+    }
+
+    void print() {
+        o.print(), x.print(), y.print(), z.print();
+        ux.print(), uy.print(), uz.print();
+        for(int i = 0; i < 6; ++ i) norms[i].print();
+        range_l.print(), range_r.print();
+        return;
     }
 };
 

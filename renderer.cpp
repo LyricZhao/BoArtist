@@ -4,6 +4,7 @@
 # include "renderer.h"
 # include "utils.h"
 
+// # define L_DEBUG_MODE
 # define TO_RENDER debug_scene
 # include "scenes/debug.h"
 
@@ -14,24 +15,31 @@ void Renderer:: load() {
     output = std:: string(TO_RENDER:: output);
     pixels = (Color_F*) std:: malloc(sizeof(Color_F) * width * height);
     for(int i = 0; i < n_objects; ++ i) objects[i] -> load_texture();
+    # ifdef L_DEBUG_MODE
+        /* Debuging tests */
+        // Ray ray(Vector3D(), Vector3D(0, 1, 0)); Vector3D gn;
+        // objects[0] -> print();
+        // objects[0] -> intersect(ray, gn);
+        // gn.print();
+        // exit(0);
+    # endif
     return;
 }
 
-bool Renderer:: intersect(const Ray &ray, double &t, int &id) {
-    double d; t = inf;
+bool Renderer:: intersect(const Ray &ray, double &t, int &id, Vector3D &n) {
+    double d; t = inf; Vector3D t_norm;
     for(int i = 0; i < n_objects; ++ i) {
-        if((d = objects[i] -> intersect(ray)) && d < t)
-            t = d, id = i;
+        if((d = objects[i] -> intersect(ray, t_norm)) && d < t)
+            t = d, id = i, n = t_norm;
     }
     return t < inf;
 }
 
 Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
-    double t; int id, in = 0;
-    if(depth > 10 || !intersect(ray, t, id)) return Color_F();
+    double t; int id, in = 0; Vector3D n;
+    if(depth > 10 || !intersect(ray, t, id, n)) return Color_F();
     Object *object = objects[id];
     Vector3D x = ray.o + ray.d * t;
-    Vector3D n = object -> norm(x);
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     Color_F f = object -> color(x);
     double mx = f.max();
@@ -44,7 +52,9 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
             double r1 = 2 * M_PI * erand48(seed), r2 = M_PI * erand48(seed);
             Vector3D w = nl, u = (fabs(w.x) > .1 ? Vector3D(0, 1): Vector3D(1)).cross(w).norm(), v = w.cross(u);
             Vector3D d = ((u * cos(r1) + v * sin(r1)) * cos(r2) + w * sin(r2)).norm();
-            return Vector3D(object -> emission) + f.mul(radiance(Ray(x, d), depth, seed));
+            Color_F tmp = radiance(Ray(x, d), depth, seed);
+            // if(tmp.length2() > 0) tmp.print();
+            return Vector3D(object -> emission) + f.mul(tmp);
         }
         case SPEC: {
             Ray reflect_ray = Ray(x, ray.d.reflect(n));
@@ -68,7 +78,9 @@ void Renderer:: render() {
     Vector3D cx = Vector3D(width * .5 / height);
     Vector3D cy = cx.cross(camera.d).norm() * .5;
 
+# ifndef L_DEBUG_MODE
     #pragma omp parallel for schedule(dynamic, 1)
+# endif
     for(int y = 0; y < height; ++ y) {
         fprintf(stderr, "\rRendering %f%%", 100. * y / height);
         for(int x = 0; x < width; ++ x) {
@@ -86,6 +98,7 @@ void Renderer:: render() {
                     pixels[index] += (pixel / samples).clamp() / 4.;
                 }
             }
+            // if(y == 100 && x == 100) exit(0);
         }
     }
     return;

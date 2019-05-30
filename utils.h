@@ -24,4 +24,24 @@ inline void update_solve(double &x, double z) {
     return;
 }
 
+inline void s_upd_min(double &t_min, double v) {
+    if(v > eps && v < t_min) t_min = v;
+    return;
+}
+
+inline void t_upd_min(double &t_min, double v) {
+    if(v > eps && v < inf && v > t_min) t_min = v;
+    return;
+}
+
+inline void upd_min(double &t_min, double v) {
+    if(v < t_min) t_min = v;
+    return;
+}
+
+inline void upd_max(double &t_max, double v) {
+    if(v > t_max) t_max = v;
+    return;
+}
+
 # endif

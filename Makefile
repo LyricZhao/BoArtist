@@ -4,7 +4,7 @@ OBJECTS = main.o renderer.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
 
-CXXC = g++-8 # further icc for high performance
+CXXC = icpc # further icc for high performance
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 LINKFLAGS = -O3 -fopenmp
 

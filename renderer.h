@@ -12,7 +12,7 @@ private:
     Ray camera; Object* *objects; Color_F *pixels;
 
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);
-    bool intersect(const Ray &ray, double &t, int &id);
+    bool intersect(const Ray &ray, double &t, int &id, Vector3D &n);
 public:    
     Renderer(): camera(Vector3D(), Vector3D()), pixels(nullptr) {}
     ~Renderer() {

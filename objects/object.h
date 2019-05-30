@@ -14,11 +14,9 @@ public:
     ~Object() { }
 
     void load_texture() { texture.load(); return; }
-
-    virtual double intersect(const Ray &ray) = 0;
-    virtual Vector3D norm(const Vector3D &x) = 0;
-
+    virtual double intersect(const Ray &ray, Vector3D &gn) = 0;
     virtual Color_F color(const Vector3D &x) = 0;
+    virtual void print() { std:: cout << "Error, it's in Object." << std:: endl; }
 };
 
 # endif
