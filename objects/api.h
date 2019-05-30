@@ -3,6 +3,7 @@
 
 # include "base.h"
 # include "object.h"
+# include "cube.h"
 # include "sphere.h"
 # include "plane.h"
 # include "bezier.h"

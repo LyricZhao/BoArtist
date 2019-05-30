@@ -15,10 +15,10 @@ public:
 
     void load_texture() { texture.load(); return; }
 
-    virtual double intersect(const Ray &ray) const = 0;
-    virtual Vector3D norm(const Vector3D &x) const = 0;
+    virtual double intersect(const Ray &ray) = 0;
+    virtual Vector3D norm(const Vector3D &x) = 0;
 
-    virtual Color_F color(const Vector3D &x) const = 0;
+    virtual Color_F color(const Vector3D &x) = 0;
 };
 
 # endif
