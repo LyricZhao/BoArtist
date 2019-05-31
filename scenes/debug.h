@@ -23,9 +23,9 @@ Object* objects[] = {
     // new Sphere(5., Vector3D(0, 100, 0), 1.5, Texture(), REFR, Color_F(3, 3, 3))
     // new Sphere(10., Vector3D( 20, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
     // new Sphere(10., Vector3D(-20, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), REFR, Color_F())
-    // new Sphere(1., Vector3D(0, 100, 0), 1.5, Texture(), REFR, Color_F(12, 12, 12)),
+    new Sphere(1., Vector3D(0, 400, 0), 1.5, Texture(), REFR, Color_F(12, 12, 12)),
     // new Cube(Vector3D(5, 100, -5), Vector3D(15, 100, -5), Vector3D(5, 110, -5), Vector3D(5, 100, 5), DIFF, 1.5, Texture("", Color_F(0.75, 0.25, 0.75)), Color_F())
-    new Bezier3D(Bezier2D(sizeof(points) / sizeof(Vector2D), points), Range1D(200, 300), DIFF, 1.5, Texture(), Color_F(3, 3, 3))
+    new Bezier3D(Bezier2D(sizeof(points) / sizeof(Vector2D), points), Range1D(500, 600), DIFF, 1.5, Texture("", Color_F(0.75, 0.75, 0.75)), Color_F())
 }; 
 
 const char output[] = "outputs/test";
