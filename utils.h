@@ -4,11 +4,15 @@
 # include <cmath>
 # include <cstdlib>
 
-# define eps 1e-8
+# define eps 1e-12
 # define inf 1e20
 
 inline double rand01() {
     return double(rand()) / RAND_MAX;
+}
+
+inline double sqrt_3(double x) {
+    return x < 0 ? -pow(-x, 1. / 3) : pow(x, 1. / 3);
 }
 
 inline double clamp(double x) {

@@ -15,6 +15,7 @@ public:
 
     void load_texture() { texture.load(); return; }
     virtual void load() { }
+    virtual void debug() { }
     virtual double intersect(const Ray &ray, Vector3D &gn) = 0;
     virtual Color_F color(const Vector3D &x) = 0;
     virtual void print() { std:: cout << "Error, it's in Object." << std:: endl; }

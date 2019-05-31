@@ -9,17 +9,21 @@
 # include "scenes/debug.h"
 
 void Renderer:: load() {
+    std:: cout << "Loading scene ... " << std:: flush;
     width = TO_RENDER:: width, height = TO_RENDER:: height;
     n_objects = sizeof(TO_RENDER:: objects) / sizeof(Object*);
     objects = TO_RENDER:: objects, samples = TO_RENDER:: samples, camera = TO_RENDER:: camera;
     output = std:: string(TO_RENDER:: output);
     pixels = (Color_F*) std:: malloc(sizeof(Color_F) * width * height);
+    for(int i = 0; i < n_objects; ++ i) objects[i] -> load();
     for(int i = 0; i < n_objects; ++ i) objects[i] -> load_texture();
+    std:: cout << "ok!" << std:: endl;
     # ifdef L_DEBUG_MODE
         /* Debuging tests */
-        objects[0] -> load();
-        objects[0] -> print();
-        exit(0);
+        // objects[0] -> load();
+        // objects[0] -> print();
+        // objects[0] -> debug();
+        // exit(0);
     # endif
     return;
 }
@@ -51,7 +55,6 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
             Vector3D w = nl, u = (fabs(w.x) > .1 ? Vector3D(0, 1): Vector3D(1)).cross(w).norm(), v = w.cross(u);
             Vector3D d = ((u * cos(r1) + v * sin(r1)) * cos(r2) + w * sin(r2)).norm();
             Color_F tmp = radiance(Ray(x, d), depth, seed);
-            // if(tmp.length2() > 0) tmp.print();
             return Vector3D(object -> emission) + f.mul(tmp);
         }
         case SPEC: {
@@ -75,7 +78,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
 void Renderer:: render() {
     Vector3D cx = Vector3D(width * .5 / height);
     Vector3D cy = cx.cross(camera.d).norm() * .5;
-
+    std:: cout << "Rendering ... " << std:: endl;
 # ifndef L_DEBUG_MODE
     #pragma omp parallel for schedule(dynamic, 1)
 # endif
@@ -96,7 +99,6 @@ void Renderer:: render() {
                     pixels[index] += (pixel / samples).clamp() / 4.;
                 }
             }
-            // if(y == 100 && x == 100) exit(0);
         }
     }
     return;

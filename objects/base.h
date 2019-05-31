@@ -70,10 +70,11 @@ public:
     inline Vector2D& operator /= (double c) { return *this = *this / c; }
     inline Vector2D& operator *= (double c) { return *this = *this * c; }
 
+    inline Vector2D norm() const { return (*this) / length(); }
     inline double length() const { return sqrt(x * x + y * y); }
     inline double length2() const { return x * x + y * y; }
     inline void print() const {
-        std:: cout << "Vector2D:" << x << ", " << y << std:: endl;
+        std:: cout << "Vector2D: " << x << ", " << y << std:: endl;
     }
 };
 
@@ -90,7 +91,8 @@ class Range1D {
 public:
     double l, r;
     Range1D(double _l, double _r): l(_l), r(_r) { }
- 
+    
+    void print() const { std:: cout << "range: " << l << " " << r << std:: endl; return; }
     inline bool in_range(double t) const { return l <= t && t <= r; }
 };
 
