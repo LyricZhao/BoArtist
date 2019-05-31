@@ -19,11 +19,6 @@ inline int gray2int(double x) {
     return int(pow(clamp(x), 1 / 2.2) * 255 + .5);
 }
 
-inline void update_solve(double &x, double z) {
-    if(z > 0 && z < x) x = z;
-    return;
-}
-
 inline void s_upd_min(double &t_min, double v) {
     if(v > eps && v < t_min) t_min = v;
     return;

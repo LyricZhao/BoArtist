@@ -41,16 +41,11 @@ public:
     }
 
     bool judge_in_range(const Vector3D &v) {
-        // range_l.print();
-        // range_r.print();
-        // v.print();
         return range_l - eps <= v && v <= range_r + eps;
     }
 
     /* Woo Method */
     virtual double intersect(const Ray &ray, Vector3D &gn) {
-        // std:: cout << std:: endl;
-        // ray.print();
         double t[6];
         t[0] = t[1] = t[2] = t[3] = t[4] = t[5] = 0;
         cross_t(t[0], norms[0], o     , ray); // down
@@ -72,7 +67,6 @@ public:
             }
             return t_min_f;
         }
-        // exit(0);
         return 0;
     }
 

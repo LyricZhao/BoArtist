@@ -72,6 +72,9 @@ public:
 
     inline double length() const { return sqrt(x * x + y * y); }
     inline double length2() const { return x * x + y * y; }
+    inline void print() const {
+        std:: cout << "Vector2D:" << x << ", " << y << std:: endl;
+    }
 };
 
 typedef Vector3D Color_F;
@@ -88,7 +91,7 @@ public:
     double l, r;
     Range1D(double _l, double _r): l(_l), r(_r) { }
  
-    inline bool in_range(double t) { return l <= t && t <= r; }
+    inline bool in_range(double t) const { return l <= t && t <= r; }
 };
 
 class Range3D {

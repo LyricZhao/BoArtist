@@ -4,7 +4,7 @@
 # include "renderer.h"
 # include "utils.h"
 
-// # define L_DEBUG_MODE
+# define L_DEBUG_MODE
 # define TO_RENDER debug_scene
 # include "scenes/debug.h"
 
@@ -17,11 +17,9 @@ void Renderer:: load() {
     for(int i = 0; i < n_objects; ++ i) objects[i] -> load_texture();
     # ifdef L_DEBUG_MODE
         /* Debuging tests */
-        // Ray ray(Vector3D(), Vector3D(0, 1, 0)); Vector3D gn;
-        // objects[0] -> print();
-        // objects[0] -> intersect(ray, gn);
-        // gn.print();
-        // exit(0);
+        objects[0] -> load();
+        objects[0] -> print();
+        exit(0);
     # endif
     return;
 }
