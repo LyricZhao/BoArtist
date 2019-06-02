@@ -223,7 +223,9 @@ public:
         return;
     }
 
-    virtual Color_F color(const Vector3D &x) {
+    virtual Color_F color(const Vector3D &v) {
+        if(fabs(v.y - range_y.l) < eps || fabs(v.y - range_y.r) < eps)
+            return texture.pixel((int)(v.x * 28), (int)(v.z * 28));
         return texture.color;
     }
 

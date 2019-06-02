@@ -29,6 +29,7 @@ public:
     void load() {
         if(path.length()) {
             buffer = stbi_load(path.c_str(), &width, &height, &channel, 0);
+            // std:: cout << width << " " << height << std:: endl;
         }
         return;
     }
@@ -38,6 +39,9 @@ public:
     }
 
     Color_F pixel(int x, int y) const {
+        y = height - y - 1;
+        // std:: cout << x << " " << y << std:: endl;
+        // if(x >= width || y >= height) while(1) std:: cout << width << " " << height << std:: endl;
         int index = (y * width + x) * channel;
         return Color_F(buffer[index], buffer[index + 1], buffer[index + 3]) / 255.;
     }

@@ -4,9 +4,9 @@ OBJECTS = main.o renderer.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
 
-CXXC = g++-9 # further icc for high performance
-CXXFLAGS = -std=c++11 -O3
-LINKFLAGS = -O3
+CXXC = icpc # further icc for high performance
+CXXFLAGS = -std=c++11 -O3 -fopenmp
+LINKFLAGS = -O3 -fopenmp
 
 COMMENTS = ''
 DEL = rm -rf

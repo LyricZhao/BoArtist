@@ -76,12 +76,12 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
 }
 
 void Renderer:: render() {
-    Vector3D cx = Vector3D(width * .5 / height);
-    Vector3D cy = cx.cross(camera.d).norm() * .5;
+    Vector3D cx = Vector3D(width * .2 / height);
+    Vector3D cy = cx.cross(camera.d).norm() * .2;
     std:: cout << "Rendering ... " << std:: endl;
 # ifndef L_DEBUG_MODE
     #pragma omp parallel for schedule(dynamic, 1)
-# endif
+# endif    
     for(int y = 0; y < height; ++ y) {
         fprintf(stderr, "\rRendering %f%%", 100. * y / height);
         for(int x = 0; x < width; ++ x) {
