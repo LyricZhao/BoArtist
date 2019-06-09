@@ -1,6 +1,6 @@
 APP = main
 
-OBJECTS = main.o renderer.o
+OBJECTS = main.o renderer.o sppm.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
 

@@ -44,10 +44,24 @@ public:
         return;
     }
 
+    inline double dim(int d) const { return d == 0 ? x : (d == 1 ? y : z); }
     inline int r() const { return gray2int(x); }
     inline int g() const { return gray2int(y); }
     inline int b() const { return gray2int(z); }
     inline Vector3D clamp() const { return Vector3D(::clamp(x), ::clamp(y), ::clamp(z)); }
+    inline void expand_min(const Vector3D &b) {
+        if(x > b.x) x = b.x;
+        if(y > b.y) y = b.y;
+        if(z > b.y) z = b.z;
+        return;
+    }
+
+    inline void expand_max(const Vector3D &b) {
+        if(x < b.x) x = b.x;
+        if(y < b.y) y = b.y;
+        if(z < b.z) z = b.z;
+        return;
+    }
 
     void print() const {
         std:: cout << "Vector3D: " << x << ", " << y << ", " << z << std:: endl;
@@ -99,11 +113,37 @@ public:
 class Range3D {
 public:
     Vector3D l, r;
+    Range3D() { }
     Range3D(Vector3D _l, Vector3D _r): l(_l), r(_r) {}
-    void print() const { l.print(); r.print(); return; }
+
+    inline void print() const { l.print(); r.print(); return; }
+    inline void overstate(const Vector3D &pos, double radius) {
+        l = Vector3D(pos.x - radius, pos.y - radius, pos.z - radius);
+        r = Vector3D(pos.x + radius, pos.y + radius, pos.z + radius);
+        return;
+    }
+    inline void expand(const Range3D &range) {
+        l.expand_min(range.l);
+        r.expand_max(range.r);
+        return;
+    }
 };
 
 enum ReflectType { DIFF, SPEC, REFR};
 typedef unsigned char Color_U;
+
+class Pixel {
+public:
+    Color_F color; int count;
+    Pixel(Color_F _color, int _count): color(_color), count(_count) { }
+
+    inline void add(const Color_F &light) {
+        ++ count, color += light;
+        return;
+    }
+    inline Color_F value() {
+        return count ? color : Color_F();
+    }
+};
 
 # endif
