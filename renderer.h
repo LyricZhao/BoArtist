@@ -10,8 +10,9 @@
 class Renderer {
 private:
     int n_objects, width, height, samples, iteration_time;
-    double r_alpha; std:: string output;
+    double sppm_radius, r_alpha; std:: string output;
     Ray camera; Object* *objects; Color_F *pixels;
+    Ray (*ray_generator)(unsigned short *seed); 
 
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);
     void radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob);
@@ -21,14 +22,15 @@ public:
     Renderer(): camera(Vector3D(), Vector3D()), pixels(nullptr) {}
     ~Renderer() {
         if(pixels != nullptr) {
-            free(pixels);
+            std:: free(pixels);
         }
+        return;
     }
 
     void load();
     void render();
     void render_sppm();
-    void save();
+    void save(std:: string suffix="");
 };
 
 # endif

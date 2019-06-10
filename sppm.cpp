@@ -29,7 +29,7 @@ void KDTree:: free() {
 
 void KDTree:: t_update(int node, int child) {
     if(child == -1) return;
-    nodes[node].range.expand(nodes[child].range);
+    KD_RANGE(node).expand(KD_RANGE(child));
     return;
 }
 
@@ -37,7 +37,7 @@ void KDTree:: t_build(int &node, int l, int r, int dim) {
     if(l >= r) return;
     int mid = (l + r) >> 1;
     node = mid;
-    nodes[node].range.overstate(nodes[node].point.pos, nodes[node].point.r);
+    KD_RANGE(node).overstate(KD_POS(node), KD_R(node));
     std:: nth_element(nodes + l, nodes + mid, nodes + r,
         [dim](const KDNode &a, const KDNode &b) {
             return a.point.pos.dim(dim) < b.point.pos.dim(dim);
@@ -55,5 +55,21 @@ void KDTree:: build(const std:: vector<VisiblePoint> &visible_points) {
     for(int i = 0; i < total_points; ++ i)
         nodes[i].point = visible_points[i];
     t_build(root, 0, total_points, 0);
+    return;
+}
+
+void KDTree:: t_query(int node, const Vector3D &pos, const Vector3D &nl, const Color_F &color, Pixel *buffer) {
+    /* TODO: consider prob */
+    if((nodes[node].point.pos - pos).length2() <= sqr(nodes[node].point.r) && nodes[node].point.nl.dot(nl) >= 0)
+        buffer[KD_INDEX(node)].add(KD_COLOR(node).mul(color));
+    if(KD_L_CHILD(node) != -1 && KD_RANGE(KD_L_CHILD(node)).contain(pos))
+        t_query(KD_L_CHILD(node), pos, nl, color, buffer);
+    if(KD_R_CHILD(node) != -1 && KD_RANGE(KD_R_CHILD(node)).contain(pos))
+        t_query(KD_R_CHILD(node), pos, nl, color, buffer);    
+    return;
+}
+
+void KDTree:: query(const Vector3D &pos, const Vector3D &nl, const Color_F &color, Pixel *buffer) {
+    t_query(root, pos, nl, color, buffer);
     return;
 }

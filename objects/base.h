@@ -44,6 +44,7 @@ public:
         return;
     }
 
+    inline friend std:: ostream& operator << (std:: ostream &os, const Vector3D &v) { os << "(" << v.x << ", " << v.y << ", " << v.z << ")"; return os; }
     inline double dim(int d) const { return d == 0 ? x : (d == 1 ? y : z); }
     inline int r() const { return gray2int(x); }
     inline int g() const { return gray2int(y); }
@@ -127,22 +128,29 @@ public:
         r.expand_max(range.r);
         return;
     }
+    inline bool contain(const Vector3D &pos) {
+        return l <= pos && pos <= r;
+    }
 };
 
 enum ReflectType { DIFF, SPEC, REFR};
 typedef unsigned char Color_U;
 
-class Pixel {
-public:
+struct Pixel {
     Color_F color; int count;
     Pixel(Color_F _color, int _count): color(_color), count(_count) { }
 
+    /* TODO: add prob */
     inline void add(const Color_F &light) {
         ++ count, color += light;
         return;
     }
     inline Color_F value() {
-        return count ? color : Color_F();
+        return count ? (color / count) : Color_F();
+    }
+    inline void print() {
+        std:: cout << color << " / " << count << std:: endl;
+        return;
     }
 };
 

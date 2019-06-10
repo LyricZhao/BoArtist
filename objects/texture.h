@@ -5,10 +5,6 @@
 
 # include "base.h"
 
-# ifndef __MAIN_CPP_COMPILE__
-    # define STB_IMAGE_IMPLEMENTATION
-# endif
-
 # include "../stb/stb_image.h"
 
 class Texture {

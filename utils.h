@@ -7,6 +7,10 @@
 # define eps 1e-12
 # define inf 1e20
 
+inline double sqr(double x) {
+    return x * x;
+}
+
 inline double rand01() {
     return double(rand()) / RAND_MAX;
 }

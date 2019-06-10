@@ -1,12 +1,13 @@
 APP = main
 
-OBJECTS = main.o renderer.o sppm.o
+OBJECTS = main.o renderer.o sppm.o stb_image.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
+SCENES = scenes/*
 
-CXXC = icpc # further icc for high performance
-CXXFLAGS = -std=c++11 -O3 -fopenmp
-LINKFLAGS = -O3 -fopenmp
+CXXC = g++-9 # further icc for high performance
+CXXFLAGS = -std=c++11 -O3
+LINKFLAGS = -O3
 
 COMMENTS = ''
 DEL = rm -rf
@@ -14,7 +15,7 @@ DEL = rm -rf
 default:
 	make $(APP)
 
-$(APP): $(OBJECTS) Makefile
+$(APP): $(OBJECTS) Makefile $(SCENES)
 	echo 'Linking: $(APP)' && \
 	$(CXXC) $(LINKFLAGS) $(OBJECTS) -o $(APP)
 
