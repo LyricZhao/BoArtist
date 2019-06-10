@@ -53,7 +53,7 @@ public:
     inline void expand_min(const Vector3D &b) {
         if(x > b.x) x = b.x;
         if(y > b.y) y = b.y;
-        if(z > b.y) z = b.z;
+        if(z > b.z) z = b.z;
         return;
     }
 

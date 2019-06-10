@@ -6,36 +6,44 @@
 # include "utils.h"
 # include "sppm.h"
 
-# define SPPM_MODE
 # define L_DEBUG_MODE
 # define TO_RENDER debug_scene
 
 # include "scenes/debug.h"
 
-/* TODO: Add SPPM control macro */
-
 void Renderer:: load() {
-    
+    # ifdef SPPM_MODE
+    std:: cout << "Using SPPM mode." << std:: endl;
+    # else
+    std:: cout << "Using PT mode." << std:: endl;
+    # endif
+
     /* Parameters */
     width = TO_RENDER:: width, height = TO_RENDER:: height;
     n_objects = sizeof(TO_RENDER:: objects) / sizeof(Object*);
     objects = TO_RENDER:: objects;
-    samples = TO_RENDER:: samples;
+    samples = TO_RENDER:: samples; /* Different meanings in sppm and normal mode */
     camera = TO_RENDER:: camera;
     ray_generator = TO_RENDER:: ray_generator;
+    output = TO_RENDER:: output;
+
+    # ifdef SPPM_MODE
     iteration_time = TO_RENDER:: iteration_time;
     sppm_radius = TO_RENDER:: sppm_radius;
     r_alpha = TO_RENDER:: r_alpha;
-    output = TO_RENDER:: output;
+    # endif
+    
     std:: cout << "Image pararmeters: " << std:: endl;
     std:: cout << " - (w, h): (" << width << ", " << height << ")" << std:: endl;
     std:: cout << " - Objects: " << n_objects << std:: endl;
     std:: cout << " - Samples: " << samples << std:: endl;
     std:: cout << " - Camera Position: " << camera.o << std:: endl;
     std:: cout << " - Camera Direction: " << camera.d << std:: endl;
+    # ifdef SPPM_MODE
     std:: cout << " - Iteration times: " << iteration_time << std:: endl;
     std:: cout << " - Radius: " << sppm_radius << std:: endl;
     std:: cout << " - Radius Alpha: " << r_alpha << std:: endl;
+    # endif
     std:: cout << " - Output filename: " << output << std:: endl;
     std:: cout << std:: endl;
 
@@ -48,12 +56,7 @@ void Renderer:: load() {
 
     /* Debuging zone */
     # ifdef L_DEBUG_MODE
-        /* Debuging tests */
         std:: cout << "Debug mode is opened." << std:: endl;
-        // objects[0] -> load();
-        // objects[0] -> print();
-        // objects[0] -> debug();
-        // exit(0);
     # endif
     return;
 }
@@ -67,6 +70,7 @@ bool Renderer:: intersect(const Ray &ray, double &t, int &id, Vector3D &n) {
     return t < inf;
 }
 
+# ifndef SPPM_MODE
 Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
     double t; int id, in = 0; Vector3D n;
     if(depth > 10 || !intersect(ray, t, id, n)) return Color_F();
@@ -74,11 +78,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
     Vector3D x = ray.o + ray.d * t;
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     Color_F f = object -> color(x);
-    double mx = f.max();
-    if(++ depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else return object -> emission;
-    }
+    ++ depth;
     switch(object -> reflect) {
         case DIFF: {
             double r1 = 2 * M_PI * erand48(seed), r2 = M_PI * erand48(seed);
@@ -105,8 +105,10 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
     }
     return Color_F();
 }
+# endif
 
-/* TODO: Object has many attributes */ 
+/* TODO: Object has many attributes */
+# ifdef SPPM_MODE
 void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob) {
     double t; int id, in = 0; Vector3D n;
     if(depth > 10 || coef.max() < eps || prob < eps || !intersect(ray, t, id, n)) return;
@@ -114,15 +116,7 @@ void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int 
     /* Note: n must be pointing out, nl = -n while light is going out */
     Vector3D x = ray.o + ray.d * t, nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     Color_F f = object -> color(x);
-    /*
-    TODO: Consider to delete
-    double mx = f.max();
-    if(++ depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else return;
-    }
-    */
-    f = coef.mul(f);
+    ++ depth, f = coef.mul(f);
     switch(object -> reflect) {
         case DIFF: {
             points.push_back(VisiblePoint(index, x, f, nl, sppm_radius, prob));
@@ -165,18 +159,7 @@ void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, c
     Object *object = objects[id];
     Vector3D x = ray.o + ray.d * t, nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     Color_F f = object -> color(x);
-    /*
-    TODO: Consider to delete
-    double mx = f.max();
-    if(++ depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else {
-            tree -> query(x, nl, color, buffer);
-            return;
-        }
-    }
-    */
-    f = color.mul(f);
+    ++ depth, f = color.mul(f);
     switch(object -> reflect) {
         case DIFF: {
             tree -> query(x, nl, f, buffer);
@@ -205,16 +188,17 @@ void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, c
         }
     }
 }
+# endif
 
+# ifndef SPPM_MODE
 void Renderer:: render() {
     Vector3D cx = Vector3D(width * .2 / height);
     Vector3D cy = cx.cross(camera.d).norm() * .2;
-    std:: cout << "Rendering ... " << std:: endl;
+    std:: cout << "Rendering ... " << std:: flush;
 # ifndef L_DEBUG_MODE
     #pragma omp parallel for schedule(dynamic, 1)
 # endif    
     for(int y = 0; y < height; ++ y) {
-        fprintf(stderr, "\rRendering %f%%", 100. * y / height);
         for(int x = 0; x < width; ++ x) {
             int index = (height - y - 1) * width + (width - x - 1);
             for(int sy = 0; sy < 2; ++ sy) {
@@ -232,11 +216,14 @@ void Renderer:: render() {
             }
         }
     }
+    std:: cout << "ok !" << std:: endl;
     return;
 }
+# endif
 
 /* TODO: OpenMP */
-void Renderer:: render_sppm() {
+# ifdef SPPM_MODE
+void Renderer:: render() {
     /* Data allocation */
     std:: cout << "Allocing data ... " << std:: flush;
     Vector3D cx = Vector3D(width * .2 / height);
@@ -287,17 +274,16 @@ void Renderer:: render_sppm() {
 
         /* Collect result */
         std:: cout << " - [" << iter + 1 << "/" << iteration_time << "] Collecting results ... " << std:: flush;
-        for(int i = 0; i < height * width; ++ i) {
+        for(int i = 0; i < height * width; ++ i)
             pixels[i] = pixels_worker[i].value();
-            // if(pixels_worker[i].count) pixels_worker[i].print();
-        }
-        save(std:: to_string(iter));
+        save("_" + std:: to_string(iter));
         std:: cout << "ok !" << std:: endl;
 
-        /* Change coef */
+        /* Change coef and free */
         samples /= sqrt(r_alpha);
         sppm_radius *= r_alpha;
         std:: cout << std:: endl;
+        tree -> free();
     }
 
     /* Free resources */
@@ -305,6 +291,7 @@ void Renderer:: render_sppm() {
     tree -> free();
     return;
 }
+# endif
 
 void Renderer:: save(std:: string suffix) {
     if(!suffix.length()) std:: cout << "Saving result ... " << std:: flush;

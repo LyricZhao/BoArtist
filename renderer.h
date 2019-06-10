@@ -7,16 +7,25 @@
 # include "objects/api.h"
 # include "sppm.h"
 
+# define SPPM_MODE
+
 class Renderer {
 private:
-    int n_objects, width, height, samples, iteration_time;
-    double sppm_radius, r_alpha; std:: string output;
+    int n_objects, width, height, samples;
+    std:: string output;
     Ray camera; Object* *objects; Color_F *pixels;
     Ray (*ray_generator)(unsigned short *seed); 
 
+    # ifdef SPPM_MODE
+    int iteration_time;
+    double sppm_radius, r_alpha;
+    # endif
+
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);
+    # ifdef SPPM_MODE
     void radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob);
     void radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, const Color_F &color, unsigned short *seed, Pixel *buffer, double prob);
+    # endif
     bool intersect(const Ray &ray, double &t, int &id, Vector3D &n);
 public:    
     Renderer(): camera(Vector3D(), Vector3D()), pixels(nullptr) {}
@@ -29,7 +38,6 @@ public:
 
     void load();
     void render();
-    void render_sppm();
     void save(std:: string suffix="");
 };
 

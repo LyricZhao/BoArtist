@@ -7,7 +7,7 @@
 int main(int argc, char** argv) {
     Renderer renderer;
     renderer.load();
-    renderer.render_sppm();
+    renderer.render();
     renderer.save();
     return 0;
 }

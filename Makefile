@@ -3,7 +3,7 @@ APP = main
 OBJECTS = main.o renderer.o sppm.o stb_image.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
-SCENES = scenes/*
+SCENES = scenes/debug.h
 
 CXXC = g++-9 # further icc for high performance
 CXXFLAGS = -std=c++11 -O3
@@ -15,7 +15,7 @@ DEL = rm -rf
 default:
 	make $(APP)
 
-$(APP): $(OBJECTS) Makefile $(SCENES)
+$(APP): $(OBJECTS) Makefile
 	echo 'Linking: $(APP)' && \
 	$(CXXC) $(LINKFLAGS) $(OBJECTS) -o $(APP)
 
@@ -23,7 +23,7 @@ $(APP).o: $(APP).cpp Makefile
 	echo 'Compiling: $(APP).o:'	&& \
 	$(CXXC) $(CXXFLAGS) -c $*.cpp -o $*.o
 
-%.o: %.cpp %.h Makefile
+%.o: %.cpp %.h Makefile $(SCENES)
 	echo 'Compiling: $*.o' && \
 	$(CXXC) $(CXXFLAGS) -c $*.cpp -o $*.o
 

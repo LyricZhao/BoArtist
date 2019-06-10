@@ -53,7 +53,8 @@ void KDTree:: build(const std:: vector<VisiblePoint> &visible_points) {
     int total_points = visible_points.size();
     nodes = (KDNode*) std:: malloc(sizeof(KDNode) * total_points);
     for(int i = 0; i < total_points; ++ i)
-        nodes[i].point = visible_points[i];
+        nodes[i] = KDNode(), nodes[i].point = visible_points[i];
+        
     t_build(root, 0, total_points, 0);
     return;
 }
@@ -62,6 +63,7 @@ void KDTree:: t_query(int node, const Vector3D &pos, const Vector3D &nl, const C
     /* TODO: consider prob */
     if((nodes[node].point.pos - pos).length2() <= sqr(nodes[node].point.r) && nodes[node].point.nl.dot(nl) >= 0)
         buffer[KD_INDEX(node)].add(KD_COLOR(node).mul(color));
+        
     if(KD_L_CHILD(node) != -1 && KD_RANGE(KD_L_CHILD(node)).contain(pos))
         t_query(KD_L_CHILD(node), pos, nl, color, buffer);
     if(KD_R_CHILD(node) != -1 && KD_RANGE(KD_R_CHILD(node)).contain(pos))
