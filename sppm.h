@@ -4,7 +4,7 @@
 # include <vector>
 
 # include "objects/api.h"
-# include "util.h"
+# include "utils.h"
 
 # define KD_L_CHILD(node) (nodes[(node)].child[0])
 # define KD_R_CHILD(node) (nodes[(node)].child[1])
@@ -44,7 +44,7 @@ public:
     void t_query(int node, const Vector3D &pos, const Vector3D &nl, const Color_F &color, Pixel *buffer);
 
     void free();
-    void build(const std:: vector<VisiblePoint> &visiable_points);
+    void build(const std:: vector<VisiblePoint> *visiable_points, int n_threads);
     void query(const Vector3D &pos, const Vector3D &nl, const Color_F &color, Pixel *buffer);
 };
 

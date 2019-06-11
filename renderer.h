@@ -23,7 +23,7 @@ private:
 
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);
     # ifdef SPPM_MODE
-    void radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob);
+    void radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob, Pixel *image);
     void radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, const Color_F &color, unsigned short *seed, Pixel *buffer, double prob);
     # endif
     bool intersect(const Ray &ray, double &t, int &id, Vector3D &n);

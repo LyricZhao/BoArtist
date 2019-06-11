@@ -1,12 +1,13 @@
 # include <cassert>
 # include <cstdio>
 # include <cstring>
+# include <omp.h>
 
 # include "renderer.h"
 # include "utils.h"
 # include "sppm.h"
 
-# define L_DEBUG_MODE
+// # define L_DEBUG_MODE
 # define TO_RENDER debug_scene
 
 # include "scenes/debug.h"
@@ -109,7 +110,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
 
 /* TODO: Object has many attributes */
 # ifdef SPPM_MODE
-void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob) {
+void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob, Pixel *image) {
     double t; int id, in = 0; Vector3D n;
     if(depth > 10 || coef.max() < eps || prob < eps || !intersect(ray, t, id, n)) return;
     Object *object = objects[id];
@@ -119,31 +120,31 @@ void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int 
     ++ depth, f = coef.mul(f);
     switch(object -> reflect) {
         case DIFF: {
-            points.push_back(VisiblePoint(index, x, f, nl, sppm_radius, prob));
+            points.push_back(VisiblePoint(index, x, f, nl, image[index].r, prob));
             break;
         }
         case SPEC: {
             Ray reflect_ray = Ray(x, ray.d.reflect(nl));
-            radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob);
+            radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob, image);
             break;
         }
         case REFR: {
             Ray reflect_ray = Ray(x, ray.d.reflect(nl));
             Vector3D d = ray.d.refract(nl, in ? 1 : object -> ior, in ? object -> ior : 1);
             if(d.length2() < eps) {
-                radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob);
+                radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob, image);
             } else {
                 double a = object -> ior - 1, b = object -> ior + 1, r0 = a * a / (b * b), c = 1 - (in ? -ray.d.dot(nl) : d.dot(n));
                 double re = r0 + (1 - r0) * c * c * c * c * c, tr = 1 - re, p = .25 + .5 * re, rp = re / p, tp = tr / (1 - p);
                 if(depth > 2) {
                     if(erand48(seed) < p) {
-                        radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob * rp);
+                        radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob * rp, image);
                     } else {
-                        radiance_sppm_backtrace(points, index, Ray(x, d), depth, seed, f, prob * tp);
+                        radiance_sppm_backtrace(points, index, Ray(x, d), depth, seed, f, prob * tp, image);
                     }
                 } else {
-                    radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob * re);
-                    radiance_sppm_backtrace(points, index, Ray(x, d), depth, seed, f, prob * tr);
+                    radiance_sppm_backtrace(points, index, reflect_ray, depth, seed, f, prob * re, image);
+                    radiance_sppm_backtrace(points, index, Ray(x, d), depth, seed, f, prob * tr, image);
                 }
             }
             break;
@@ -226,23 +227,31 @@ void Renderer:: render() {
 void Renderer:: render() {
     /* Data allocation */
     std:: cout << "Allocing data ... " << std:: flush;
+    int n_threads = omp_get_max_threads();
     Vector3D cx = Vector3D(width * .2 / height);
     Vector3D cy = cx.cross(camera.d).norm() * .2;
-    Pixel *pixels_worker = (Pixel *) std:: malloc(width * height * sizeof(Pixel));
-    memset(pixels_worker, 0, sizeof(Pixel) * width * height);
+    Pixel **pixels_workers = (Pixel **) std:: malloc(sizeof(Pixel*) * n_threads);
+    Pixel *image = (Pixel *) std:: malloc(sizeof(Pixel) * width * height);
+    memset(image, 0, sizeof(Pixel) * width * height);
+    for(int i = 0; i < width * height; ++ i)
+        image[i].r = sppm_radius;
+    for(int i = 0; i < n_threads; ++ i)
+        pixels_workers[i] = (Pixel *) std:: malloc(sizeof(Pixel) * height * width);
     KDTree *tree = new KDTree();
     std:: cout << "ok !" << std:: endl;
     std:: cout << std:: endl;
 
+    std:: cout << "Using " << n_threads << " OpenMP threads." << std:: endl;
     std:: cout << "Begin iterations: " << std:: endl;
     for(int iter = 0; iter < iteration_time; ++ iter) {
         /* Backtrace */
         std:: cout << "Iteration #[" << iter + 1 << "/" << iteration_time << "]:" << std:: endl;
-        std:: cout << " - Radius: " << sppm_radius << std:: endl;
         std:: cout << " - Samples: " << samples << std:: endl;
         std:: cout << " - [" << iter + 1 << "/" << iteration_time << "] Backtracing ... " << std:: flush;
-        std:: vector<VisiblePoint> points;
+        std:: vector<VisiblePoint> points[n_threads];
+        # pragma omp parallel for schedule(dynamic, 1)
         for(int y = 0; y < height; ++ y) {
+            int thread_id = omp_get_thread_num();
             for(int x = 0; x < width; ++ x) {
                 int index = (height - y - 1) * width + (width - x - 1);
                 for(int sy = 0; sy < 2; ++ sy) {
@@ -251,7 +260,7 @@ void Renderer:: render() {
                         double r1 = 2 * erand48(seed), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
                         double r2 = 2 * erand48(seed), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
                         Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
-                        radiance_sppm_backtrace(points, index, Ray(camera.o + d, d.norm()), 0, seed, Color_F(1, 1, 1), 1);
+                        radiance_sppm_backtrace(points[thread_id], index, Ray(camera.o + d, d.norm()), 0, seed, Color_F(1, 1, 1), 1, image);
                     }
                 }
             }
@@ -260,34 +269,47 @@ void Renderer:: render() {
 
         /* Build KD-tree */
         std:: cout << " - [" << iter + 1 << "/" << iteration_time << "] Building KD-tree ... " << std:: flush;
-        tree -> build(points);
+        tree -> build(points, n_threads);
         std:: cout << "ok !" << std:: endl;
         
         /* Shoot random light */
         std:: cout << " - [" << iter + 1 << "/" << iteration_time << "] Shooting lights ... " << std:: flush;
-        unsigned short seed[3] = {(unsigned short)iter, (unsigned short)0, (unsigned short)time(nullptr)}; // TODO: omp_id
-        for(int s = 0; s < samples; ++ s) {
-            Ray light = ray_generator(seed);
-            radiance_sppm_forward(tree, light, 0, Color_F(1, 1, 1), seed, pixels_worker, 1.);
+        int per_samples = samples / n_threads;
+        # pragma omp parallel
+        {
+            int thread_id = omp_get_thread_num();
+            unsigned short seed[3] = {(unsigned short)iter, (unsigned short)thread_id, (unsigned short)time(nullptr)};
+            memset(pixels_workers[thread_id], 0, sizeof(Pixel) * width * height);
+            for(int s = 0; s < per_samples; ++ s) {
+                int thread_id = omp_get_thread_num();
+                Ray light = ray_generator(seed);
+                radiance_sppm_forward(tree, light, 0, Color_F(1, 1, 1), seed, pixels_workers[thread_id], 1.);
+            }
         }
         std:: cout << "ok !" << std:: endl;
 
         /* Collect result */
         std:: cout << " - [" << iter + 1 << "/" << iteration_time << "] Collecting results ... " << std:: flush;
-        for(int i = 0; i < height * width; ++ i)
-            pixels[i] = pixels_worker[i].value();
+        # pragma omp parallel for
+        for(int i = 0; i < height * width; ++ i) {
+            Pixel pixel;
+            for(int j = 0; j < n_threads; ++ j) pixel = pixel + pixels_workers[j][i];
+            image[i].modify(pixel, r_alpha);
+            pixels[i] = image[i].value();
+        }
         save("_" + std:: to_string(iter));
         std:: cout << "ok !" << std:: endl;
 
-        /* Change coef and free */
-        samples /= sqrt(r_alpha);
-        sppm_radius *= r_alpha;
+        /* Free KD-tree */
         std:: cout << std:: endl;
         tree -> free();
     }
 
     /* Free resources */
-    std:: free(pixels_worker);
+    for(int i = 0; i < n_threads; ++ i)
+        std:: free(pixels_workers[i]);
+    std:: free(pixels_workers);
+    std:: free(image);
     tree -> free();
     return;
 }
@@ -299,6 +321,7 @@ void Renderer:: save(std:: string suffix) {
     fprintf(file, "P6\n%d %d\n%d\n", width, height, 255);
     for(int i = 0; i < width * height; ++ i)
         fprintf(file, "%c%c%c", pixels[i].r(), pixels[i].g(), pixels[i].b());
+    fflush(file);
     if(!suffix.length()) std:: cout << "ok !" << std:: endl;
     return;
 }

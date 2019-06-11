@@ -6,8 +6,8 @@ OUTPUTS = outputs/*
 SCENES = scenes/debug.h
 
 CXXC = g++-9 # further icc for high performance
-CXXFLAGS = -std=c++11 -O3
-LINKFLAGS = -O3
+CXXFLAGS = -std=c++11 -O3 -fopenmp
+LINKFLAGS = -O3 -fopenmp
 
 COMMENTS = ''
 DEL = rm -rf
@@ -35,10 +35,10 @@ clean:
 	make clean_objs
 
 sync:
-	rsync --exclude ".vscode" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist im:~/
+	rsync --exclude ".vscode" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist gorgon:~/
 
 sync_output:
-	rsync -azv im:~/BoArtist/outputs ./
+	rsync -azv gorgon:~/BoArtist/outputs ./
 
 clean_outputs:
 	echo 'Cleaning outputs ...'

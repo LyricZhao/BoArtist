@@ -137,19 +137,26 @@ enum ReflectType { DIFF, SPEC, REFR};
 typedef unsigned char Color_U;
 
 struct Pixel {
-    Color_F color; int count;
-    Pixel(Color_F _color, int _count): color(_color), count(_count) { }
+    Color_F color; int count; double r;
+    Pixel(Color_F _color=Color_F(), int _count=0, double _r=0): color(_color), count(_count), r(_r) { }
 
-    /* TODO: add prob */
+    inline Pixel operator + (const Pixel &b) { return Pixel(color + b.color, count + b.count); }
     inline void add(const Color_F &light) {
         ++ count, color += light;
         return;
     }
     inline Color_F value() {
-        return count ? (color / count) : Color_F();
+        return count ? (color / (count * M_PI * sqr(r))) : Color_F();
     }
     inline void print() {
         std:: cout << color << " / " << count << std:: endl;
+        return;
+    }
+    inline void modify(const Pixel &n, double alpha) {
+        int r_count = count; double r_r = r;
+        count = count + n.count * alpha;
+        r = r * sqrt(double(count) / (r_count + n.count));
+        color = (color + n.color) * sqr(r / r_r);
         return;
     }
 };
