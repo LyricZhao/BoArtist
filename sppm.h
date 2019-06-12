@@ -13,6 +13,7 @@
 # define KD_INDEX(node) (nodes[(node)].point.index)
 # define KD_COLOR(node) (nodes[(node)].point.color)
 # define KD_RANGE(node) (nodes[(node)].range)
+# define KD_PROB(node) (nodes[(node)].point.prob)
 
 class VisiblePoint {
 public:

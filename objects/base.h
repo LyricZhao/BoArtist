@@ -90,6 +90,7 @@ public:
     inline double length2() const { return x * x + y * y; }
     inline void print() const {
         std:: cout << "Vector2D: " << x << ", " << y << std:: endl;
+        return;
     }
 };
 
@@ -137,12 +138,12 @@ enum ReflectType { DIFF, SPEC, REFR};
 typedef unsigned char Color_U;
 
 struct Pixel {
-    Color_F color; int count; double r;
+    Color_F color; double count, r;
     Pixel(Color_F _color=Color_F(), int _count=0, double _r=0): color(_color), count(_count), r(_r) { }
 
     inline Pixel operator + (const Pixel &b) { return Pixel(color + b.color, count + b.count); }
     inline void add(const Color_F &light) {
-        ++ count, color += light;
+        count += 1.0, color += light;
         return;
     }
     inline Color_F value() {
@@ -153,9 +154,9 @@ struct Pixel {
         return;
     }
     inline void modify(const Pixel &n, double alpha) {
-        int r_count = count; double r_r = r;
+        double r_count = count, r_r = r;
         count = count + n.count * alpha;
-        r = r * sqrt(double(count) / (r_count + n.count));
+        r = r * sqrt(count / (r_count + n.count));
         color = (color + n.color) * sqr(r / r_r);
         return;
     }

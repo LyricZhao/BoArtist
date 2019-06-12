@@ -62,9 +62,8 @@ void KDTree:: build(const std:: vector<VisiblePoint> *visible_points, int n_thre
 }
 
 void KDTree:: t_query(int node, const Vector3D &pos, const Vector3D &nl, const Color_F &color, Pixel *buffer) {
-    /* TODO: consider prob */
     if((nodes[node].point.pos - pos).length2() <= sqr(nodes[node].point.r) && nodes[node].point.nl.dot(nl) >= 0)
-        buffer[KD_INDEX(node)].add(KD_COLOR(node).mul(color));
+        buffer[KD_INDEX(node)].add(KD_COLOR(node).mul(color) * KD_PROB(node));
         
     if(KD_L_CHILD(node) != -1 && KD_RANGE(KD_L_CHILD(node)).contain(pos))
         t_query(KD_L_CHILD(node), pos, nl, color, buffer);

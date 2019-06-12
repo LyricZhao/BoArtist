@@ -5,7 +5,7 @@ SOURCES = sources/*
 OUTPUTS = outputs/*
 SCENES = scenes/debug.h
 
-CXXC = g++-9 # further icc for high performance
+CXXC = g++ # further icc for high performance
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 LINKFLAGS = -O3 -fopenmp
 
@@ -37,7 +37,7 @@ clean:
 sync:
 	rsync --exclude ".vscode" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist gorgon:~/
 
-sync_output:
+sync_outputs:
 	rsync -azv gorgon:~/BoArtist/outputs ./
 
 clean_outputs:

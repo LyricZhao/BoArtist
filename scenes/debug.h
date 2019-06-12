@@ -5,12 +5,12 @@
 
 namespace debug_scene {
 
-int width = 512, height = 512, samples = 10000;
+int width = 512, height = 512, samples = 20000;
 Vector3D light_point(5, 100, 5), u(1, 0, 0), v(0, 1, 0), w(0, 0, 1);
 
 Ray camera(Vector3D(0, 0, 0), Vector3D(0, 1, 0).norm());
-int iteration_time = 1000;
-double r_alpha = 0.7, sppm_radius = 2;
+int iteration_time = 10000;
+double r_alpha = 0.7, sppm_radius = 2, energy = 10.;
 
 Vector2D points[] = {
     Vector2D(11, 36), Vector2D(10.5, 42.5), Vector2D(15.5, 43), Vector2D(16.6, 38), Vector2D(22.1, 38.4), Vector2D(27.7, 37.4),
@@ -33,15 +33,15 @@ Object* objects[] = {
     // new Plane(Vector3D(0,  1. / 650,  1. / 650), DIFF, 1.5, Texture("", Color_F(0.75, 0.5, 0.75)), Color_F()),
     // new Sphere(5., Vector3D(0, 100, 0), 1.5, Texture(), REFR, Color_F(3, 3, 3))
     new Plane(Vector3D(0, 0, 1. / 5), DIFF, 1.5, Texture("", Color_F(0.25, 0.25, 0.75)), Color_F()),
-    new Plane(Vector3D(0, 0, -1. / 5), DIFF, 1.5, Texture("", Color_F(0.75, 0.25, 0.75)), Color_F()),
-    new Plane(Vector3D(1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.75, 0.25, 0.25)), Color_F()),
-    new Plane(Vector3D(-1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.0, 0.25, 0.75)), Color_F()),
-    new Plane(Vector3D(0, 1. / 700), DIFF, 1.5, Texture("", Color_F(0.75, 0.25, 0.75)), Color_F()),
-    new Sphere(1, Vector3D(0, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
-    new Sphere(2, Vector3D(0, 200, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
-    new Sphere(3, Vector3D(0, 300, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
-    new Sphere(4, Vector3D(0, 400, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
-    new Sphere(5, Vector3D(0, 500, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
+    new Plane(Vector3D(0, 0, -1. / 5), DIFF, 1.5, Texture("", Color_F(0.75, 0.25, 0.25)), Color_F()),
+    new Plane(Vector3D(1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.25, 0.75, 0.25)), Color_F()),
+    new Plane(Vector3D(-1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.25, 0.25, 0.25)), Color_F()),
+    new Plane(Vector3D(0, 1. / 120), DIFF, 1.5, Texture("", Color_F(0.75, 0.75, 0.75)), Color_F()),
+    new Sphere(5, Vector3D(0, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), REFR, Color_F()),
+    // new Sphere(2, Vector3D(0, 200, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
+    // new Sphere(3, Vector3D(0, 300, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
+    // new Sphere(4, Vector3D(0, 400, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
+    // new Sphere(5, Vector3D(0, 500, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
     // new Sphere(10., Vector3D(-20, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), REFR, Color_F())
     // new Sphere(5., Vector3D(10, 90, 0), 1.5, Texture(), REFR, Color_F(12, 12, 12)),
     // new Sphere(5., Vector3D(40, 480, 0), 1.5, Texture(), REFR, Color_F(12, 12, 12)),

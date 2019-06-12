@@ -32,6 +32,7 @@ void Renderer:: load() {
     iteration_time = TO_RENDER:: iteration_time;
     sppm_radius = TO_RENDER:: sppm_radius;
     r_alpha = TO_RENDER:: r_alpha;
+    energy = TO_RENDER:: energy;
     # endif
     
     std:: cout << "Image pararmeters: " << std:: endl;
@@ -44,6 +45,7 @@ void Renderer:: load() {
     std:: cout << " - Iteration times: " << iteration_time << std:: endl;
     std:: cout << " - Radius: " << sppm_radius << std:: endl;
     std:: cout << " - Radius Alpha: " << r_alpha << std:: endl;
+    std:: cout << " - Energy: " << energy << std:: endl;
     # endif
     std:: cout << " - Output filename: " << output << std:: endl;
     std:: cout << std:: endl;
@@ -295,7 +297,7 @@ void Renderer:: render() {
             Pixel pixel;
             for(int j = 0; j < n_threads; ++ j) pixel = pixel + pixels_workers[j][i];
             image[i].modify(pixel, r_alpha);
-            pixels[i] = image[i].value();
+            pixels[i] = image[i].value() * energy;
         }
         save("_" + std:: to_string(iter));
         std:: cout << "ok !" << std:: endl;
