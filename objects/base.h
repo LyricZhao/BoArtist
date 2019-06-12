@@ -46,6 +46,7 @@ public:
 
     inline friend std:: ostream& operator << (std:: ostream &os, const Vector3D &v) { os << "(" << v.x << ", " << v.y << ", " << v.z << ")"; return os; }
     inline double dim(int d) const { return d == 0 ? x : (d == 1 ? y : z); }
+    inline double& dim_addr(int d) { return d == 0 ? x : (d == 1 ? y : z); }
     inline int r() const { return gray2int(x); }
     inline int g() const { return gray2int(y); }
     inline int b() const { return gray2int(z); }
@@ -124,6 +125,12 @@ public:
         r = Vector3D(pos.x + radius, pos.y + radius, pos.z + radius);
         return;
     }
+    inline void surface(Vector3D *points) {
+        l = r = points[0];
+        l.expand_min(points[1]), l.expand_min(points[2]);
+        r.expand_max(points[1]), r.expand_max(points[2]);
+        return;
+    }
     inline void expand(const Range3D &range) {
         l.expand_min(range.l);
         r.expand_max(range.r);
@@ -131,6 +138,17 @@ public:
     }
     inline bool contain(const Vector3D &pos) {
         return l <= pos && pos <= r;
+    }
+
+    inline double estimate(const Ray &ray) {
+        double x = 1. / ray.d.x, y = 1. / ray.d.y, z = 1. / ray.d.z;
+        double t1 = (l.x - ray.o.x) * x, t2 = (r.x - ray.o.x) * x;
+        double t3 = (l.y - ray.o.y) * y, t4 = (r.y - ray.o.y) * y;
+        double t5 = (l.z - ray.o.z) * z, t6 = (r.z - ray.o.z) * z;
+        double tmin = std:: max(std:: max(std:: min(t1, t2), std:: min(t3, t4)), std:: min(t5, t6));
+        double tmax = std:: min(std:: min(std:: max(t1, t2), std:: max(t3, t4)), std:: max(t5, t6));
+        if(tmax < 0 || tmin > tmax) return inf;
+        return tmin;
     }
 };
 

@@ -47,4 +47,15 @@ inline void upd_max(double &t_max, double v) {
     return;
 }
 
+std:: string read_number(std:: string line, int &pos) {
+    auto is_number = [] (char c) -> bool {
+        return ('0' <= c && c <= '9') || c == '.' || c == '-' || c == 'e';
+    };
+    int start = pos;
+    while(start < line.length() && !is_number(line[start])) ++ start;
+    pos = start + 1;
+    while(pos < line.length() && is_number(line[pos])) ++ pos;
+    return line.substr(start, pos - start);
+}
+
 # endif
