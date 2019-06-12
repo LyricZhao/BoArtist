@@ -37,11 +37,11 @@ void KDTree:: t_build(int &node, int l, int r, int dim) {
     if(l >= r) return;
     int mid = (l + r) >> 1;
     node = mid;
-    KD_RANGE(node).overstate(KD_POS(node), KD_R(node));
     std:: nth_element(nodes + l, nodes + mid, nodes + r,
         [dim](const KDNode &a, const KDNode &b) {
             return a.point.pos.dim(dim) < b.point.pos.dim(dim);
         });
+    KD_RANGE(node).overstate(KD_POS(node), KD_R(node));
     t_build(KD_L_CHILD(node), l, mid, (dim + 1) % 3);
     t_build(KD_R_CHILD(node), mid + 1, r, (dim + 1) % 3);
     t_update(node, KD_L_CHILD(node)), t_update(node, KD_R_CHILD(node));

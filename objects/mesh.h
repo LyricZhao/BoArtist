@@ -22,7 +22,7 @@ public:
     Vector3D points[3], g, norm;
 
     inline void calc() {
-        g = (points[0] + points[1] + points[2]) / 3.0;
+        g = points[0];
         norm = (points[2] - points[0]).cross(points[1] - points[0]).norm();
         return;
     }
@@ -78,11 +78,11 @@ public:
         if(l >= r) return;
         int mid = (l + r) >> 1;
         node = mid;
-        KD_RANGE(node).surface(KD_SURFACE(node).points);
         std:: nth_element(nodes + l, nodes + mid, nodes + r,
             [dim](const KDNode &a, const KDNode &b) {
                 return a.surface.g.dim(dim) < b.surface.g.dim(dim);
             });
+        KD_RANGE(node).surface(KD_SURFACE(node).points);
         t_build(KD_L_CHILD(node), l, mid, (dim + 1) % 3);
         t_build(KD_R_CHILD(node), mid + 1, r, (dim + 1) % 3);
         t_update(node, KD_L_CHILD(node)), t_update(node, KD_R_CHILD(node));
@@ -119,7 +119,7 @@ public:
         while(input.getline(buffer, BUFFER_MAX_LENGTH)) {
             std:: string line = buffer;
             if(!line.length()) continue;
-            if(line[0] == 'v') {
+            if(line[0] == 'v' && line[1] == ' ') {
                 Vector3D v;
                 for(int i = 0, pos = 0; i < 3; ++ i)
                     v.dim_addr(i) = atof(read_number(line, pos).c_str());
@@ -143,7 +143,7 @@ public:
             KD_SURFACE(i).points[1] = points[std:: get<1>(tuples[i])];
             KD_SURFACE(i).points[2] = points[std:: get<2>(tuples[i])];
             KD_SURFACE(i).calc();
-            KD_L_CHILD(i) = KD_L_CHILD(i) = -1;
+            KD_L_CHILD(i) = KD_R_CHILD(i) = -1;
         }
         t_build(root, 0, total_surfaces, 0);
         return;
@@ -164,8 +164,8 @@ public:
     Vector3D shift; std:: string path;
     obj_ds:: KDTree *tree; double scale;
 
-    Mesh(Vector3D _shift, std:: string _path, ReflectType _reflect, double _ior, double _scale):
-        shift(_shift), path(_path), scale(_scale), Object(_reflect, _ior, Texture("", Color_F()), Color_F()) { }
+    Mesh(Vector3D _shift, std:: string _path, ReflectType _reflect, double _ior, double _scale, Texture _texture):
+        shift(_shift), path(_path), scale(_scale), Object(_reflect, _ior, _texture, Color_F()) { }
 
     virtual void debug() {
         return;
@@ -182,7 +182,8 @@ public:
     }
 
     virtual double intersect(const Ray &ray, Vector3D &gn) {
-        return tree -> query(ray, gn);
+        double t = tree -> query(ray, gn);
+        return t;
     }
 };
 

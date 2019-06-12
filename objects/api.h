@@ -7,5 +7,6 @@
 # include "sphere.h"
 # include "plane.h"
 # include "bezier.h"
+# include "mesh.h"
 
 # endif

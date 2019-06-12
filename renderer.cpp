@@ -8,8 +8,9 @@
 # include "sppm.h"
 
 // # define L_DEBUG_MODE
-# define TO_RENDER debug_scene
+# define TO_RENDER bretesche
 
+# include "scenes/bretesche.h"
 # include "scenes/debug.h"
 
 void Renderer:: load() {
