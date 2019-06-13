@@ -34,7 +34,7 @@ public:
 
 class KDTree {
 public:
-    int root;
+    int root, total_points;
     KDNode *nodes;
 
     KDTree();

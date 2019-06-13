@@ -86,6 +86,7 @@ public:
     inline Vector2D& operator /= (double c) { return *this = *this / c; }
     inline Vector2D& operator *= (double c) { return *this = *this * c; }
 
+    inline double& dim_addr(int d) { return d == 0 ? x : y; }
     inline Vector2D norm() const { return (*this) / length(); }
     inline double length() const { return sqrt(x * x + y * y); }
     inline double length2() const { return x * x + y * y; }
@@ -152,7 +153,7 @@ public:
     }
 };
 
-enum ReflectType { DIFF, SPEC, REFR};
+enum ReflectType { DIFF, SPEC, REFR };
 typedef unsigned char Color_U;
 
 struct Pixel {

@@ -10,6 +10,7 @@
 
 # include "base.h"
 # include "object.h"
+# include "../stb/stb_image.h"
 
 # define KD_L_CHILD(node) (nodes[(node)].child[0])
 # define KD_R_CHILD(node) (nodes[(node)].child[1])
@@ -19,7 +20,7 @@
 namespace obj_ds {
 class Surface {
 public:
-    Vector3D points[3], g, norm;
+    Vector3D points[3], g, norm; Color_F texture[3];
 
     inline void calc() {
         g = points[0];
@@ -27,7 +28,7 @@ public:
         return;
     }
 
-    inline void to_update(const Ray &ray, Vector3D &gn, double &t) {
+    inline void to_update(const Ray &ray, Vector3D &gn, double &t, Color_F &f) {
         Vector3D e1 = points[1] - points[0], e2 = points[2] - points[0], p = ray.d.cross(e2), vt, q;
         double u, v, ct, det = e1.dot(p);
         if(det > 0) vt = ray.o - points[0];
@@ -37,8 +38,11 @@ public:
         q = vt.cross(e1);
         v = ray.d.dot(q); if(v < 0 || u + v > det) return;
         ct = e2.dot(q) / det;
-        if(ct > 0 && ct < t)
+        if(ct > 0 && ct < t) {
             t = ct, gn = norm;
+            u /= det, v /= det;
+            f = texture[0] * (1 - u - v) + texture[1] * u + texture[2] * v;
+        }
         return;
     }
 };
@@ -89,14 +93,14 @@ public:
         return;
     }
 
-    double t_query(int node, const Ray &ray, Vector3D &gn, double &t) {
-        KD_SURFACE(node).to_update(ray, gn, t);
+    double t_query(int node, const Ray &ray, Vector3D &gn, double &t, Color_F &f) {
+        KD_SURFACE(node).to_update(ray, gn, t, f);
         double est[2] = {inf, inf};
         if(KD_L_CHILD(node) != -1) est[0] = KD_RANGE(KD_L_CHILD(node)).estimate(ray);
         if(KD_R_CHILD(node) != -1) est[1] = KD_RANGE(KD_R_CHILD(node)).estimate(ray);
         int choice = est[0] < est[1] ? 0 : 1;
         for(int i = 0; i < 2; ++ i, choice ^= 1) if(est[choice] < t)
-            t_query(nodes[node].child[choice], ray, gn, t);
+            t_query(nodes[node].child[choice], ray, gn, t, f);
         return t;
     }
 
@@ -109,13 +113,18 @@ public:
     }
 
     # define BUFFER_MAX_LENGTH 256
-    void build(std:: string path, const Vector3D &shift, double scale) {
+    void build(std:: string path, std:: string texture_path, const Vector3D &shift, double scale) {
         assert(path != "");
 
         std:: vector<Vector3D> points;
+        std:: vector<Vector2D> texture_points;
         std:: vector<std:: tuple<int, int, int> > tuples;
+        std:: vector<std:: tuple<int, int, int> > texture_tuples;
         char buffer[BUFFER_MAX_LENGTH];
         std:: ifstream input(path);
+        Texture texture(texture_path);
+        texture.load();
+
         while(input.getline(buffer, BUFFER_MAX_LENGTH)) {
             std:: string line = buffer;
             if(!line.length()) continue;
@@ -125,23 +134,41 @@ public:
                     v.dim_addr(i) = atof(read_number(line, pos).c_str());
                 points.push_back(v * scale + shift);
             }
+            if(line[0] == 'v' && line[1] == 't') {
+                Vector2D vt;
+                for(int i = 0, pos = 0; i < 2; ++ i)
+                    vt.dim_addr(i) = atof(read_number(line, pos).c_str());
+                texture_points.push_back(vt);
+            }
             if(line[0] == 'f') {
-                int v[3];
+                int v[3], t[3];
                 bool read_twice = (line.find('/') != line.npos);
                 for(int i = 0, pos = 0; i < 3; ++ i) {
                     v[i] = atoi(read_number(line, pos).c_str()) - 1;
-                    if(read_twice) read_number(line, pos);
+                    if(read_twice) t[i] = atoi(read_number(line, pos).c_str()) - 1;
                 }
                 tuples.push_back(std:: make_tuple(v[0], v[1], v[2]));
+                if(read_twice) texture_tuples.push_back(std:: make_tuple(t[0], t[1], t[2]));
             }
         }
 
+        bool has_texture = (!texture.none());
         total_surfaces = tuples.size();
         nodes = (KDNode *)std:: malloc(sizeof(KDNode) * total_surfaces);
         for(int i = 0; i < total_surfaces; ++ i) {
             KD_SURFACE(i).points[0] = points[std:: get<0>(tuples[i])];
             KD_SURFACE(i).points[1] = points[std:: get<1>(tuples[i])];
             KD_SURFACE(i).points[2] = points[std:: get<2>(tuples[i])];
+            if(has_texture) {
+                KD_SURFACE(i).texture[0] = texture.ratio(texture_points[std:: get<0>(texture_tuples[i])]);
+                KD_SURFACE(i).texture[1] = texture.ratio(texture_points[std:: get<1>(texture_tuples[i])]);
+                KD_SURFACE(i).texture[2] = texture.ratio(texture_points[std:: get<2>(texture_tuples[i])]);
+            } else {
+                KD_SURFACE(i).texture[0] = texture.color;
+                KD_SURFACE(i).texture[1] = texture.color;
+                KD_SURFACE(i).texture[2] = texture.color;
+            }
+            
             KD_SURFACE(i).calc();
             KD_L_CHILD(i) = KD_R_CHILD(i) = -1;
         }
@@ -150,9 +177,9 @@ public:
     }
     # undef BUFFER_MAX_LENGTH
 
-    double query(const Ray &ray, Vector3D &gn) {
+    double query(const Ray &ray, Vector3D &gn, Color_F &f) {
         double t = inf;
-        t_query(root, ray, gn, t);
+        t_query(root, ray, gn, t, f);
         return t < inf ? t : 0;
     }
 };
@@ -161,11 +188,11 @@ public:
 /* Texture is contained */
 class Mesh: public Object {
 public:
-    Vector3D shift; std:: string path;
+    Vector3D shift; std:: string path, texture_path;
     obj_ds:: KDTree *tree; double scale;
 
-    Mesh(Vector3D _shift, std:: string _path, ReflectType _reflect, double _ior, double _scale, Texture _texture):
-        shift(_shift), path(_path), scale(_scale), Object(_reflect, _ior, _texture, Color_F()) { }
+    Mesh(Vector3D _shift, std:: string _path, std:: string _texture_path, ReflectType _reflect, double _ior, double _scale, Texture _texture):
+        shift(_shift), path(_path), texture_path(_texture_path), scale(_scale), Object(_reflect, _ior, _texture, Color_F()) { }
 
     virtual void debug() {
         return;
@@ -173,7 +200,7 @@ public:
 
     virtual void load() {
         tree = new obj_ds:: KDTree();
-        tree -> build(path, shift, scale);
+        tree -> build(path, texture_path, shift, scale);
         return;
     }
 
@@ -181,8 +208,8 @@ public:
         return texture.color;
     }
 
-    virtual double intersect(const Ray &ray, Vector3D &gn) {
-        double t = tree -> query(ray, gn);
+    virtual double intersect(const Ray &ray, Vector3D &gn, Color_F &f) {
+        double t = tree -> query(ray, gn, f);
         return t;
     }
 };

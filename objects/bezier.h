@@ -239,7 +239,7 @@ public:
         return;
     }
 
-    virtual double intersect(const Ray &ray, Vector3D &gn) {
+    virtual double intersect(const Ray &ray, Vector3D &gn, Color_F &f) {
         Vector2D gn2d;
         double t = bezier2d.solve(ray, range_y, gn2d);
         if(t > 0) {
@@ -254,6 +254,7 @@ public:
             plane_case(range_y.l, ray, t, gn, true);
             plane_case(range_y.r, ray, t, gn, false);
         }
+        if(t > 0 && t < inf) f = color(ray.o + ray.d * t);
         return t;
     }
 };

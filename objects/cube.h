@@ -35,17 +35,12 @@ public:
         return;
     }
 
-    /* TODO */
-    virtual Color_F color(const Vector3D &x) {
-        return texture.color;
-    }
-
     bool judge_in_range(const Vector3D &v) {
         return range_l - eps <= v && v <= range_r + eps;
     }
 
     /* Woo Method */
-    virtual double intersect(const Ray &ray, Vector3D &gn) {
+    virtual double intersect(const Ray &ray, Vector3D &gn, Color_F &f) {
         double t[6];
         t[0] = t[1] = t[2] = t[3] = t[4] = t[5] = 0;
         cross_t(t[0], norms[0], o     , ray); // down
@@ -65,6 +60,7 @@ public:
             for(int i = 0; i < 6; ++ i) if(fabs(t_min_f - t[i]) < eps) {
                 gn = norms[i]; break;
             }
+            f = texture.color;
             return t_min_f;
         }
         return 0;

@@ -5,7 +5,7 @@ SOURCES = sources/*
 OUTPUTS = outputs/*
 SCENES = scenes/debug.h
 
-CXXC = g++ # further icc for high performance
+CXXC = g++-9 # further icc for high performance
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 LINKFLAGS = -O3 -fopenmp
 
@@ -21,6 +21,10 @@ $(APP): $(OBJECTS) Makefile
 
 $(APP).o: $(APP).cpp Makefile
 	echo 'Compiling: $(APP).o:'	&& \
+	$(CXXC) $(CXXFLAGS) -c $*.cpp -o $*.o
+
+stb_image.o: stb_image.cpp Makefile
+	echo 'Compiling: stb_image.o' && \
 	$(CXXC) $(CXXFLAGS) -c $*.cpp -o $*.o
 
 %.o: %.cpp %.h Makefile $(SCENES)

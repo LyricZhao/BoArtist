@@ -28,6 +28,7 @@ void Renderer:: load() {
     camera = TO_RENDER:: camera;
     ray_generator = TO_RENDER:: ray_generator;
     output = TO_RENDER:: output;
+    camera_scale = TO_RENDER:: camera_scale;
 
     # ifdef SPPM_MODE
     iteration_time = TO_RENDER:: iteration_time;
@@ -42,6 +43,7 @@ void Renderer:: load() {
     std:: cout << " - Samples: " << samples << std:: endl;
     std:: cout << " - Camera Position: " << camera.o << std:: endl;
     std:: cout << " - Camera Direction: " << camera.d << std:: endl;
+    std:: cout << " - Camera Scale: " << camera_scale << std:: endl;
     # ifdef SPPM_MODE
     std:: cout << " - Iteration times: " << iteration_time << std:: endl;
     std:: cout << " - Radius: " << sppm_radius << std:: endl;
@@ -65,23 +67,21 @@ void Renderer:: load() {
     return;
 }
 
-bool Renderer:: intersect(const Ray &ray, double &t, int &id, Vector3D &n) {
-    double d; t = inf; Vector3D t_norm;
+bool Renderer:: intersect(const Ray &ray, double &t, int &id, Vector3D &n, Vector3D &x, Color_F &f) {
+    double d; t = inf; Vector3D t_norm; Color_F t_f;
     for(int i = 0; i < n_objects; ++ i) {
-        if((d = objects[i] -> intersect(ray, t_norm)) && d < t)
-            t = d, id = i, n = t_norm;
+        if((d = objects[i] -> intersect(ray, t_norm, t_f)) && d < t)
+            t = d, id = i, n = t_norm, f = t_f, x = ray.o + ray.d * t;
     }
     return t < inf;
 }
 
 # ifndef SPPM_MODE
 Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
-    double t; int id, in = 0; Vector3D n;
-    if(depth > 10 || !intersect(ray, t, id, n)) return Color_F();
+    double t; int id, in = 0; Vector3D n, x; Color_F f;
+    if(depth > 10 || !intersect(ray, t, id, n, x, f)) return Color_F();
     Object *object = objects[id];
-    Vector3D x = ray.o + ray.d * t;
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    Color_F f = object -> color(x);
     ++ depth;
     switch(object -> reflect) {
         case DIFF: {
@@ -114,12 +114,11 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
 /* TODO: Object has many attributes */
 # ifdef SPPM_MODE
 void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob, Pixel *image) {
-    double t; int id, in = 0; Vector3D n;
-    if(depth > 10 || coef.max() < eps || prob < eps || !intersect(ray, t, id, n)) return;
+    double t; int id, in = 0; Vector3D n, x; Color_F f;
+    if(depth > 10 || coef.max() < eps || prob < eps || !intersect(ray, t, id, n, x, f)) return;
     Object *object = objects[id];
     /* Note: n must be pointing out, nl = -n while light is going out */
-    Vector3D x = ray.o + ray.d * t, nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    Color_F f = object -> color(x);
+    Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     ++ depth, f = coef.mul(f);
     switch(object -> reflect) {
         case DIFF: {
@@ -158,18 +157,17 @@ void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int 
 }
 
 void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, const Color_F &color, unsigned short *seed, Pixel *buffer, double prob) {
-    double t; int id, in = 0; Vector3D n;
-    if(depth > 10 || prob < eps || color.max() < eps || !intersect(ray, t, id, n)) return;
+    double t; int id, in = 0; Vector3D n, x; Color_F f;
+    if(depth > 10 || prob < eps || color.max() < eps || !intersect(ray, t, id, n, x, f)) return;
     Object *object = objects[id];
-    Vector3D x = ray.o + ray.d * t, nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    Color_F f = object -> color(x);
+    Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     ++ depth, f = color.mul(f);
     switch(object -> reflect) {
         case DIFF: {
             tree -> query(x, nl, f, buffer);
-            double r1 = 2 * M_PI * erand48(seed), r2 = M_PI * erand48(seed);
+            double r1 = 2 * M_PI * erand48(seed), r2 = erand48(seed), s_r2 = sqrt(r2);
             Vector3D w = nl, u = (fabs(w.x) > .1 ? Vector3D(0, 1): Vector3D(1)).cross(w).norm(), v = w.cross(u);
-            Vector3D d = ((u * cos(r1) + v * sin(r1)) * cos(r2) + w * sin(r2)).norm();
+            Vector3D d = ((u * cos(r1) + v * sin(r1)) * s_r2 + w * sqrt(1 - r2)).norm();
             radiance_sppm_forward(tree, Ray(x, d), depth, f, seed, buffer, prob);
             break;
         }
@@ -231,8 +229,8 @@ void Renderer:: render() {
     /* Data allocation */
     std:: cout << "Allocing data ... " << std:: flush;
     int n_threads = omp_get_max_threads();
-    Vector3D cx = Vector3D(width * .2 / height);
-    Vector3D cy = cx.cross(camera.d).norm() * .2;
+    Vector3D cx = Vector3D(width * camera_scale / height);
+    Vector3D cy = cx.cross(camera.d).norm() * camera_scale;
     Pixel **pixels_workers = (Pixel **) std:: malloc(sizeof(Pixel*) * n_threads);
     Pixel *image = (Pixel *) std:: malloc(sizeof(Pixel) * width * height);
     memset(image, 0, sizeof(Pixel) * width * height);

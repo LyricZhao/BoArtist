@@ -15,6 +15,7 @@ private:
     std:: string output;
     Ray camera; Object* *objects; Color_F *pixels;
     Ray (*ray_generator)(unsigned short *seed); 
+    double camera_scale;
 
     # ifdef SPPM_MODE
     int iteration_time;
@@ -26,7 +27,7 @@ private:
     void radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob, Pixel *image);
     void radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, const Color_F &color, unsigned short *seed, Pixel *buffer, double prob);
     # endif
-    bool intersect(const Ray &ray, double &t, int &id, Vector3D &n);
+    bool intersect(const Ray &ray, double &t, int &id, Vector3D &n, Vector3D &x, Color_F &f);
 public:    
     Renderer(): camera(Vector3D(), Vector3D()), pixels(nullptr) {}
     ~Renderer() {
