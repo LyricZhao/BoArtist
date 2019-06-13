@@ -3,7 +3,7 @@ APP = main
 OBJECTS = main.o renderer.o sppm.o stb_image.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
-SCENES = scenes/debug.h
+SCENES = scenes/debug.h scenes/bretesche.h
 
 CXXC = g++ # further icc for high performance
 CXXFLAGS = -std=c++11 -O3 -fopenmp
@@ -39,7 +39,7 @@ clean:
 	make clean_objs
 
 sync:
-	rsync --exclude ".vscode" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist gorgon:~/
+	rsync --exclude ".vscode" --exclude "outputs" --exclude ".git" --exclude ".DS_Store" -azv ../BoArtist gorgon:~/
 
 sync_outputs:
 	rsync -azv gorgon:~/BoArtist/outputs ./

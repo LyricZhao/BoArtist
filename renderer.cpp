@@ -82,7 +82,11 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
     if(depth > 10 || !intersect(ray, t, id, n, x, f)) return Color_F();
     Object *object = objects[id];
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    ++ depth;
+    ++ depth; double mx = f.max();
+    if(depth > 5) {
+        if(erand48(seed) < mx) f /= mx;
+        else return object -> emission;
+    }
     switch(object -> reflect) {
         case DIFF: {
             double r1 = 2 * M_PI * erand48(seed), r2 = M_PI * erand48(seed);
@@ -119,7 +123,13 @@ void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int 
     Object *object = objects[id];
     /* Note: n must be pointing out, nl = -n while light is going out */
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    ++ depth, f = coef.mul(f);
+    ++ depth;
+    double mx = f.max();
+    if(depth > 5) {
+        if(erand48(seed) < mx) f /= mx;
+        else return;
+    }
+    f = coef.mul(f);
     switch(object -> reflect) {
         case DIFF: {
             points.push_back(VisiblePoint(index, x, f, nl, image[index].r, prob));
@@ -161,7 +171,13 @@ void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, c
     if(depth > 10 || prob < eps || color.max() < eps || !intersect(ray, t, id, n, x, f)) return;
     Object *object = objects[id];
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    ++ depth, f = color.mul(f);
+    ++ depth;
+    double mx = f.max();
+    if(depth > 5) {
+        if(erand48(seed) < mx) f /= mx;
+        else return;
+    }
+    f = color.mul(f);
     switch(object -> reflect) {
         case DIFF: {
             tree -> query(x, nl, f, buffer);
@@ -194,13 +210,14 @@ void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, c
 
 # ifndef SPPM_MODE
 void Renderer:: render() {
-    Vector3D cx = Vector3D(width * .2 / height);
-    Vector3D cy = cx.cross(camera.d).norm() * .2;
-    std:: cout << "Rendering ... " << std:: flush;
+    Vector3D cx = Vector3D(width * camera_scale / height);
+    Vector3D cy = cx.cross(camera.d).norm() * camera_scale;
+    std:: cout << "Rendering ... " << std:: endl;
 # ifndef L_DEBUG_MODE
     #pragma omp parallel for schedule(dynamic, 1)
 # endif    
     for(int y = 0; y < height; ++ y) {
+        fprintf(stderr, "Current progress: %d/%d\n", y + 1, height);
         for(int x = 0; x < width; ++ x) {
             int index = (height - y - 1) * width + (width - x - 1);
             for(int sy = 0; sy < 2; ++ sy) {
@@ -218,6 +235,7 @@ void Renderer:: render() {
             }
         }
     }
+    std:: cout << std:: endl;
     std:: cout << "ok !" << std:: endl;
     return;
 }
