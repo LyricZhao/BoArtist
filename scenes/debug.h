@@ -37,7 +37,7 @@ Object* objects[] = {
     new Plane(Vector3D(1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.25, 0.75, 0.25)), Color_F()),
     new Plane(Vector3D(-1. / 5, 0, 0), DIFF, 1.5, Texture("", Color_F(0.25, 0.25, 0.25)), Color_F()),
     new Plane(Vector3D(0, 1. / 120), DIFF, 1.5, Texture("", Color_F(0.75, 0.75, 0.75)), Color_F()),
-    new Mesh(Vector3D(0, 90, 0), "sources/dinosaur.2k.obj", "", DIFF, 1.5, 0.1, Texture("", Color_F(1, 1, 1) * 0.8)),
+    // new Mesh(Vector3D(0, 90, 0), "sources/dinosaur.2k.obj", "", DIFF, 1.5, 0.1, Texture("", Color_F(1, 1, 1) * 0.8)),
     // new Sphere(5, Vector3D(0, 100, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), REFR, Color_F()),
     // new Sphere(2, Vector3D(0, 200, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),
     // new Sphere(3, Vector3D(0, 300, 0), 1.5, Texture("", Color_F(1, 1, 1) * 0.999), SPEC, Color_F()),

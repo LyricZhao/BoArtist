@@ -23,7 +23,7 @@ public:
     }
 
     void load() {
-        if(path.length()) {
+        if(path.length() && buffer == nullptr) {
             buffer = stbi_load(path.c_str(), &width, &height, &channel, 0);
         }
         return;

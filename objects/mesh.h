@@ -20,7 +20,8 @@
 namespace obj_ds {
 class Surface {
 public:
-    Vector3D points[3], g, norm; Color_F texture[3];
+    Vector3D points[3], g, norm; Vector2D t_pts[3];
+    Texture *texture;
 
     inline void calc() {
         g = points[0];
@@ -41,7 +42,7 @@ public:
         if(ct > 0 && ct < t) {
             t = ct, gn = norm;
             u /= det, v /= det;
-            f = texture[0] * (1 - u - v) + texture[1] * u + texture[2] * v;
+            f = texture -> ratio(t_pts[0] * (1 - u - v) + t_pts[1] * u + t_pts[2] * v);
         }
         return;
     }
@@ -113,7 +114,7 @@ public:
     }
 
     # define BUFFER_MAX_LENGTH 256
-    void build(std:: string path, std:: string texture_path, const Vector3D &shift, double scale) {
+    void build(std:: string path, std:: string texture_path, const Vector3D &shift, double scale, Texture *texture) {
         assert(path != "");
 
         std:: vector<Vector3D> points;
@@ -122,8 +123,6 @@ public:
         std:: vector<std:: tuple<int, int, int> > texture_tuples;
         char buffer[BUFFER_MAX_LENGTH];
         std:: ifstream input(path);
-        Texture texture(texture_path);
-        texture.load();
 
         while(input.getline(buffer, BUFFER_MAX_LENGTH)) {
             std:: string line = buffer;
@@ -152,22 +151,16 @@ public:
             }
         }
 
-        bool has_texture = (!texture.none());
         total_surfaces = tuples.size();
         nodes = (KDNode *)std:: malloc(sizeof(KDNode) * total_surfaces);
         for(int i = 0; i < total_surfaces; ++ i) {
             KD_SURFACE(i).points[0] = points[std:: get<0>(tuples[i])];
             KD_SURFACE(i).points[1] = points[std:: get<1>(tuples[i])];
             KD_SURFACE(i).points[2] = points[std:: get<2>(tuples[i])];
-            if(has_texture) {
-                KD_SURFACE(i).texture[0] = texture.ratio(texture_points[std:: get<0>(texture_tuples[i])]);
-                KD_SURFACE(i).texture[1] = texture.ratio(texture_points[std:: get<1>(texture_tuples[i])]);
-                KD_SURFACE(i).texture[2] = texture.ratio(texture_points[std:: get<2>(texture_tuples[i])]);
-            } else {
-                KD_SURFACE(i).texture[0] = texture.color;
-                KD_SURFACE(i).texture[1] = texture.color;
-                KD_SURFACE(i).texture[2] = texture.color;
-            }
+            KD_SURFACE(i).t_pts[0] = texture_points[std:: get<0>(texture_tuples[i])];
+            KD_SURFACE(i).t_pts[1] = texture_points[std:: get<1>(texture_tuples[i])];
+            KD_SURFACE(i).t_pts[2] = texture_points[std:: get<2>(texture_tuples[i])];
+            KD_SURFACE(i).texture = texture;
             
             KD_SURFACE(i).calc();
             KD_L_CHILD(i) = KD_R_CHILD(i) = -1;
@@ -191,8 +184,8 @@ public:
     Vector3D shift; std:: string path, texture_path;
     obj_ds:: KDTree *tree; double scale;
 
-    Mesh(Vector3D _shift, std:: string _path, std:: string _texture_path, ReflectType _reflect, double _ior, double _scale, Texture _texture):
-        shift(_shift), path(_path), texture_path(_texture_path), scale(_scale), Object(_reflect, _ior, _texture, Color_F()) { }
+    Mesh(Vector3D _shift, std:: string _path, ReflectType _reflect, double _ior, double _scale, Texture _texture):
+        shift(_shift), path(_path), scale(_scale), Object(_reflect, _ior, _texture, Color_F()) { }
 
     virtual void debug() {
         return;
@@ -200,7 +193,7 @@ public:
 
     virtual void load() {
         tree = new obj_ds:: KDTree();
-        tree -> build(path, texture_path, shift, scale);
+        tree -> build(path, texture_path, shift, scale, &texture);
         return;
     }
 
