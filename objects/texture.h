@@ -9,10 +9,10 @@
 
 class Texture {
 public:
-    int width, height, channel;
+    int width, height, channel; bool flip;
     Color_F color; stbi_uc *buffer; std:: string path;
 
-    Texture(std:: string _path="", Color_F _color=Color_F(1, 1, 1)): path(_path), width(0), height(0), buffer(nullptr), color(_color) { }
+    Texture(std:: string _path="", Color_F _color=Color_F(1, 1, 1), bool _flip=false): path(_path), width(0), height(0), buffer(nullptr), color(_color), flip(_flip) { }
 
     ~Texture() {
         if(buffer != nullptr) {
@@ -34,7 +34,9 @@ public:
     }
 
     Color_F pixel(int x, int y) const {
+        if(none()) return color;
         y = height - y - 1;
+        if(!flip) x = width - x - 1;
         int index = (y * width + x) * channel;
         return Color_F(buffer[index], buffer[index + 1], buffer[index + 2]) / 255.;
     }

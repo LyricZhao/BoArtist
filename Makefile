@@ -3,9 +3,9 @@ APP = main
 OBJECTS = main.o renderer.o sppm.o stb_image.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
-SCENES = scenes/debug.h scenes/bretesche.h scenes/pt_sky.h
+SCENES = scenes/debug.h scenes/bretesche.h scenes/pt_sky.h scenes/pig.h
 
-CXXC = g++-9 # further icc for high performance
+CXXC = g++ # further icc for high performance
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 LINKFLAGS = -O3 -fopenmp
 

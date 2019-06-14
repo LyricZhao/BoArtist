@@ -8,11 +8,13 @@
 # include "sppm.h"
 
 // # define L_DEBUG_MODE
-# define TO_RENDER pt_sky
+# define TO_RENDER pig
 
-# include "scenes/pt_sky.h"
+// # include "scenes/pt_sky.h"
+// # include "scenes/indoor.h"
 // # include "scenes/bretesche.h"
 // # include "scenes/debug.h"
+# include "scenes/pig.h"
 
 void Renderer:: load() {
     # ifdef SPPM_MODE

@@ -7,7 +7,7 @@
 # include "objects/api.h"
 # include "sppm.h"
 
-// # define SPPM_MODE
+# define SPPM_MODE
 
 class Renderer {
 private:
