@@ -8,9 +8,9 @@
 # include "sppm.h"
 
 // # define L_DEBUG_MODE
-# define TO_RENDER dinosaurs
+# define TO_RENDER pig
 
-# include "scenes/debug.h"
+# include "scenes/pig.h"
 # include "scenes/pt_sky.h"
 # include "scenes/bretesche.h"
 # include "scenes/dinosaurs.h"
@@ -26,7 +26,7 @@ void Renderer:: load() {
     width = TO_RENDER:: width, height = TO_RENDER:: height;
     n_objects = sizeof(TO_RENDER:: objects) / sizeof(Object*);
     objects = TO_RENDER:: objects;
-    samples = TO_RENDER:: samples; /* Different meanings in sppm and normal mode */
+    samples = TO_RENDER:: samples; /* NOTE: Different meanings in sppm and normal mode */
     camera = TO_RENDER:: camera;
     ray_generator = TO_RENDER:: ray_generator;
     output = TO_RENDER:: output;
@@ -38,6 +38,7 @@ void Renderer:: load() {
     r_alpha = TO_RENDER:: r_alpha;
     energy = TO_RENDER:: energy;
     dof = TO_RENDER:: dof;
+    focal_distance = TO_RENDER:: focal_distance;
     # endif
     
     std:: cout << "Image pararmeters: " << std:: endl;
@@ -52,6 +53,8 @@ void Renderer:: load() {
     std:: cout << " - Radius: " << sppm_radius << std:: endl;
     std:: cout << " - Radius Alpha: " << r_alpha << std:: endl;
     std:: cout << " - Energy: " << energy << std:: endl;
+    std:: cout << " - DOF: " << dof << std:: endl;
+    std:: cout << " - Focal Distance: " << focal_distance << std:: endl;
     # endif
     std:: cout << " - Output filename: " << output << std:: endl;
     std:: cout << std:: endl;
@@ -85,11 +88,7 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
     if(depth > 10 || !intersect(ray, t, id, n, x, f)) return Color_F();
     Object *object = objects[id];
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
-    ++ depth; double mx = f.max();
-    if(depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else return object -> emission;
-    }
+    ++ depth;
     switch(object -> reflect) {
         case DIFF: {
             double r1 = 2 * M_PI * erand48(seed), r2 = M_PI * erand48(seed);
@@ -118,7 +117,6 @@ Color_F Renderer:: radiance(const Ray &ray, int depth, unsigned short *seed) {
 }
 # endif
 
-/* TODO: Object has many attributes */
 # ifdef SPPM_MODE
 void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int index, const Ray &ray, int depth, unsigned short *seed, const Color_F &coef, double prob, Pixel *image) {
     double t; int id, in = 0; Vector3D n, x; Color_F f;
@@ -127,11 +125,6 @@ void Renderer:: radiance_sppm_backtrace(std:: vector<VisiblePoint> &points, int 
     /* Note: n must be pointing out, nl = -n while light is going out */
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     ++ depth;
-    double mx = f.max();
-    if(depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else return;
-    }
     f = coef.mul(f);
     switch(object -> reflect) {
         case DIFF: {
@@ -175,11 +168,6 @@ void Renderer:: radiance_sppm_forward(KDTree *tree, const Ray &ray, int depth, c
     Object *object = objects[id];
     Vector3D nl = n.dot(ray.d) < 0 ? in = 1, n : -n;
     ++ depth;
-    double mx = f.max();
-    if(depth > 5) {
-        if(erand48(seed) < mx) f /= mx;
-        else return;
-    }
     f = color.mul(f);
     switch(object -> reflect) {
         case DIFF: {
@@ -263,6 +251,7 @@ void Renderer:: render() {
     std:: cout << "ok !" << std:: endl;
     std:: cout << std:: endl;
 
+    /* Main Loop */
     std:: cout << "Using " << n_threads << " OpenMP threads." << std:: endl;
     std:: cout << "Begin iterations: " << std:: endl;
     for(int iter = 0; iter < iteration_time; ++ iter) {
@@ -282,8 +271,8 @@ void Renderer:: render() {
                         double r1 = 2 * erand48(seed), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
                         double r2 = 2 * erand48(seed), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
                         Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
-                        double theta = 2 * M_PI * erand48(seed), r_rd = erand48(seed);
-                        Vector3D pop = camera.o + d * 217, o_r = camera.o + (cx * cos(theta) + cy * sin(theta)) * r_rd * dof;
+                        double theta = 2 * M_PI * erand48(seed), r_rd = erand48(seed); /* Random sample on aperture */
+                        Vector3D pop = camera.o + d * focal_distance, o_r = camera.o + (cx * cos(theta) + cy * sin(theta)) * r_rd * dof;
                         radiance_sppm_backtrace(points[thread_id], index, Ray(pop, (pop - o_r).norm()), 0, seed, Color_F(1, 1, 1), 1, image);
                     }
                 }

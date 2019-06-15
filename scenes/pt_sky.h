@@ -12,7 +12,7 @@ Vector3D light_point(0, 80, 0), u(1, 0, 0), v(0, 1, 0), w(0, 0, 1);
 
 Ray camera(Vector3D(50, 52, 295.6), Vector3D(0, -0.042612, -1).norm());
 int iteration_time = 1000;
-double r_alpha = 0.7, sppm_radius = 2, energy = 10., camera_scale = 0.5135, dof = 0;
+double r_alpha = 0.7, sppm_radius = 2, energy = 10., camera_scale = 0.5135, dof = 0, focal_distance = 1.;
 
 Ray ray_generator(unsigned short *seed) {
     double x = erand48(seed) * 2 - 1, y = erand48(seed) * 2 - 1, z = erand48(seed) * 2 - 1;

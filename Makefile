@@ -3,9 +3,9 @@ APP = main
 OBJECTS = main.o renderer.o sppm.o stb_image.o
 SOURCES = sources/*
 OUTPUTS = outputs/*
-SCENES = scenes/debug.h scenes/bretesche.h scenes/pt_sky.h scenes/pig.h scenes/dinosaurs.h
+SCENES = scenes/bretesche.h scenes/pt_sky.h scenes/pig.h scenes/dinosaurs.h
 
-CXXC = g++ # further icc for high performance
+CXXC = g++-9
 CXXFLAGS = -std=c++11 -O3 -fopenmp
 LINKFLAGS = -O3 -fopenmp
 
@@ -52,11 +52,3 @@ clean_objs:
 	echo 'Cleaning objects ...'
 	-$(DEL) *.o
 	-$(DEL) $(APP)
-
-push:
-	make clean_objs -s
-	echo 'Comments: $(COMMENTS)'
-	git add .gitignore
-	git add *
-	git commit -m "$(COMMENTS)"
-	git push origin master
