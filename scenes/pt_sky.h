@@ -1,5 +1,5 @@
-# ifndef __DEBUG_SCENE_H__
-# define __DEBUG_SCENE_H__
+# ifndef __PT_SKY_H__
+# define __PT_SKY_H__
 
 /* Only in PT Mode */
 
@@ -12,7 +12,7 @@ Vector3D light_point(0, 80, 0), u(1, 0, 0), v(0, 1, 0), w(0, 0, 1);
 
 Ray camera(Vector3D(50, 52, 295.6), Vector3D(0, -0.042612, -1).norm());
 int iteration_time = 1000;
-double r_alpha = 0.7, sppm_radius = 2, energy = 10., camera_scale = 0.5135;
+double r_alpha = 0.7, sppm_radius = 2, energy = 10., camera_scale = 0.5135, dof = 0;
 
 Ray ray_generator(unsigned short *seed) {
     double x = erand48(seed) * 2 - 1, y = erand48(seed) * 2 - 1, z = erand48(seed) * 2 - 1;
@@ -29,7 +29,7 @@ Object* objects[] = {
     new Sphere(110000, Vector3D(50, -110048.5, 0), 1.5, Texture("", Color_F()), DIFF, Color_F(.9, .5, .05) * 4),
     new Sphere(4e4, Vector3D(50, -4e4-30, -3000), 1.5, Texture("", Color_F(.2, .2, .2)), DIFF, Color_F()),
     new Sphere(26.5, Vector3D(22, 26.5, 42), 1.5, Texture("", Color_F(1, 1, 1) * .596), SPEC, Color_F()),
-    new Sphere(13, Vector3D(75, 13, 82), 1.5, Texture("", Color_F(.96, .96, .96) * .96), SPEC, Color_F()),
+    new Sphere(13, Vector3D(75, 13, 82), 1.5, Texture("", Color_F(.96, .96, .96) * .96), REFR, Color_F()),
     new Sphere(12, Vector3D(87, 22, 24), 1.5, Texture("", Color_F(.6, .6, .6) * .696), SPEC, Color_F()),
 }; 
 

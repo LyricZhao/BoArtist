@@ -42,7 +42,8 @@ public:
         if(ct > 0 && ct < t) {
             t = ct, gn = norm;
             u /= det, v /= det;
-            f = texture -> ratio(t_pts[0] * (1 - u - v) + t_pts[1] * u + t_pts[2] * v);
+            if(texture -> none()) f = texture -> color;
+            else f = texture -> ratio(t_pts[0] * (1 - u - v) + t_pts[1] * u + t_pts[2] * v);
         }
         return;
     }
@@ -151,17 +152,20 @@ public:
             }
         }
 
+        bool has_texture = !texture -> none();
         total_surfaces = tuples.size();
         nodes = (KDNode *)std:: malloc(sizeof(KDNode) * total_surfaces);
         for(int i = 0; i < total_surfaces; ++ i) {
             KD_SURFACE(i).points[0] = points[std:: get<0>(tuples[i])];
             KD_SURFACE(i).points[1] = points[std:: get<1>(tuples[i])];
             KD_SURFACE(i).points[2] = points[std:: get<2>(tuples[i])];
-            KD_SURFACE(i).t_pts[0] = texture_points[std:: get<0>(texture_tuples[i])];
-            KD_SURFACE(i).t_pts[1] = texture_points[std:: get<1>(texture_tuples[i])];
-            KD_SURFACE(i).t_pts[2] = texture_points[std:: get<2>(texture_tuples[i])];
             KD_SURFACE(i).texture = texture;
-            
+            if(has_texture) {
+                KD_SURFACE(i).t_pts[0] = texture_points[std:: get<0>(texture_tuples[i])];
+                KD_SURFACE(i).t_pts[1] = texture_points[std:: get<1>(texture_tuples[i])];
+                KD_SURFACE(i).t_pts[2] = texture_points[std:: get<2>(texture_tuples[i])];
+            }
+
             KD_SURFACE(i).calc();
             KD_L_CHILD(i) = KD_R_CHILD(i) = -1;
         }

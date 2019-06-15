@@ -8,13 +8,12 @@
 # include "sppm.h"
 
 // # define L_DEBUG_MODE
-# define TO_RENDER pig
+# define TO_RENDER dinosaurs
 
-// # include "scenes/pt_sky.h"
-// # include "scenes/indoor.h"
-// # include "scenes/bretesche.h"
-// # include "scenes/debug.h"
-# include "scenes/pig.h"
+# include "scenes/debug.h"
+# include "scenes/pt_sky.h"
+# include "scenes/bretesche.h"
+# include "scenes/dinosaurs.h"
 
 void Renderer:: load() {
     # ifdef SPPM_MODE
@@ -38,6 +37,7 @@ void Renderer:: load() {
     sppm_radius = TO_RENDER:: sppm_radius;
     r_alpha = TO_RENDER:: r_alpha;
     energy = TO_RENDER:: energy;
+    dof = TO_RENDER:: dof;
     # endif
     
     std:: cout << "Image pararmeters: " << std:: endl;
@@ -243,13 +243,14 @@ void Renderer:: render() {
 }
 # endif
 
-/* TODO: OpenMP */
 # ifdef SPPM_MODE
 void Renderer:: render() {
     /* Data allocation */
     std:: cout << "Allocing data ... " << std:: flush;
     int n_threads = omp_get_max_threads();
     Vector3D cx = Vector3D(width * camera_scale / height);
+    if(fabs(fabs(camera.d.x) - 1) < eps)
+        cx = Vector3D(0, 1, 0);
     Vector3D cy = cx.cross(camera.d).norm() * camera_scale;
     Pixel **pixels_workers = (Pixel **) std:: malloc(sizeof(Pixel*) * n_threads);
     Pixel *image = (Pixel *) std:: malloc(sizeof(Pixel) * width * height);
@@ -281,7 +282,9 @@ void Renderer:: render() {
                         double r1 = 2 * erand48(seed), dx = r1 < 1 ? sqrt(r1) : 2 - sqrt(2 - r1);
                         double r2 = 2 * erand48(seed), dy = r2 < 1 ? sqrt(r2) : 2 - sqrt(2 - r2);
                         Vector3D d = cx * ((sx + dx / 2 + x) / width - .5) + cy * ((sy + dy / 2 + y) / height - .5) + camera.d;
-                        radiance_sppm_backtrace(points[thread_id], index, Ray(camera.o + d, d.norm()), 0, seed, Color_F(1, 1, 1), 1, image);
+                        double theta = 2 * M_PI * erand48(seed), r_rd = erand48(seed);
+                        Vector3D pop = camera.o + d * 217, o_r = camera.o + (cx * cos(theta) + cy * sin(theta)) * r_rd * dof;
+                        radiance_sppm_backtrace(points[thread_id], index, Ray(pop, (pop - o_r).norm()), 0, seed, Color_F(1, 1, 1), 1, image);
                     }
                 }
             }

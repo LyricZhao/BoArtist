@@ -1,16 +1,16 @@
-# ifndef __DEBUG_SCENE_H__
-# define __DEBUG_SCENE_H__
+# ifndef __PIG_H__
+# define __PIG_H__
 
 # include "../objects/api.h"
 
 namespace pig {
 
-int width = 2560, height = 1440, samples = 400000;
+int width = 2560, height = 1440, samples = 4000000;
 Vector3D light_point(20, 400, 20), u(1, 0, 0), v(0, 1, 0), w(0, 0, 1);
 
 Ray camera(Vector3D(0, 300, 0), Vector3D(0.1, 1, 0.1).norm());
 int iteration_time = 1000;
-double r_alpha = 0.7, sppm_radius = 10, energy = 20., camera_scale = 0.4;
+double r_alpha = 0.7, sppm_radius = 10, energy = 30., camera_scale = 0.4, dof = 0;
 
 Vector2D points[] = {
     Vector2D(10.94, 36.08), Vector2D(10.32, 37.57), Vector2D(9.84, 39.59), Vector2D(10.12, 41.95),

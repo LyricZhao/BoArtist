@@ -19,7 +19,7 @@ private:
 
     # ifdef SPPM_MODE
     int iteration_time;
-    double sppm_radius, r_alpha, energy;
+    double sppm_radius, r_alpha, energy, dof;
     # endif
 
     Color_F radiance(const Ray &ray, int depth, unsigned short *seed);

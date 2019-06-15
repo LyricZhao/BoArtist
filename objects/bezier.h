@@ -22,23 +22,15 @@ public:
         if(t < 0 || t > ret) return;
         
         double y = ray.o.y + t * ray.d.y;
-        // std:: cout << "y = " << y << std:: endl;
-        // range_y.print();
         if(range_y.in_range(y)) {
             ret = t;
-            /* k = y'(u) / x'(u) = (3 * a.y * u^2 + 2 * b.y * u + c.y) / (3 * a.x * u^2 + 2 * b.x * u + c.x) */
             k = (u * (3. * a.y * u + 2. * b.y) + c.y) / (u * (3. * a.x * u + 2. * b.x) + c.x);
-            // ray.print(), print();
-            // std:: cout << "u = " << u << ", x = " << (u * (u * (a.x * u + b.x) + c.x) + d.x) << ", z = " << (u * (u * (a.y * u + b.y) + c.y) + d.y) << std:: endl;
-            // std:: cout << "t = " << t << ", x = " << ray.o.x + ray.d.x * t << ", z = " << ray.o.z + ray.d.z * t << std:: endl;
-            // std:: cout << "k = " << k << std:: endl << std:: endl;
         }
         return;
     }
 
     inline bool judge_solve(double u, const Vector2D &v) {
         if(u < 0 || u > 1) return false;
-        // std:: cout << "u = " << u << std:: endl;
         double px = u * (u * (a.x * u + b.x) + c.x) + d.x;
         return px > v.x;
     }
@@ -58,11 +50,8 @@ public:
         /* Solve: a.y * t^3 + b.y * t^2 + c.y * t^3 + d.y = v.y, x > v.x */
         double na = a.y, nb = b.y, nc = c.y, nd = d.y - v.y;
         
-        // std:: cout << na << " " << nb << " " << nc << " " << nd << std:: endl;
         assert(fabs(na) > eps);
         PREPROCESS_SHENGJIN;
-        // std:: cout << "p = " << p << ", q = " << q << ", delta = " << delta << std:: endl;
-        // std:: cout << pow(-1, 1. / 3) << std:: endl;
         if(delta > 0) {
             tot += judge_solve(ROOT_1_CASE_1, v);
         } else if(fabs(delta) < eps) {
@@ -84,22 +73,17 @@ public:
         nc = c.x * ray.d.z - c.y * ray.d.x;
         nd = d.x * ray.d.z - d.y * ray.d.x - ray.o.x * ray.d.z + ray.o.z * ray.d.x;
         /* Now the problem is to solve: na * t^3 + nb * t^2 + nc * t + nd = 0 */
-        // std:: cout << na << " " << nb << " " << nc << " " << nd << std:: endl;
 
         /* Shengjin Method */
         assert(fabs(na) > eps);
         PREPROCESS_SHENGJIN;
         if(delta > 0) {
-            // std:: cout << "CASE 1" << std:: endl;
             update_solve(ret, ROOT_1_CASE_1, ray, range_y, k);
         } else if(fabs(delta) < eps) {
-            // std:: cout << "CASE 2" << std:: endl;
             update_solve(ret, ROOT_1_CASE_2, ray, range_y, k);
             update_solve(ret, ROOT_2_CASE_2, ray, range_y, k);
         } else {
-            // std:: cout << "CASE 3" << std:: endl;
             PREPROCESS_CASE_3;
-            // std:: cout << "p = " << p << ", q = " << q << std:: endl;
             update_solve(ret, ROOT_1_CASE_3, ray, range_y, k);
             update_solve(ret, ROOT_2_CASE_3, ray, range_y, k);
             update_solve(ret, ROOT_3_CASE_3, ray, range_y, k);
@@ -166,20 +150,16 @@ public:
         int count = 0;
         for(int i = 0; i < n_points; ++ i)
             count += equations[i].count(v);
-        // v.print();
-        // if(count) std:: cout << "count: " << count << std:: endl;
         return count & 1;
     }
 
     void preprocess() {
         Vector2D *lc = (Vector2D*) std:: malloc(sizeof(Vector2D) * n_points);
         Vector2D *nc = (Vector2D*) std:: malloc(sizeof(Vector2D) * n_points);
-        // std:: cout << "Control points:" << std:: endl;
         for(int i = 0; i < n_points; ++ i) {
             int la = (i - 1 + n_points) % n_points;
             int nx = (i + 1) % n_points;
             get_control_points(points[la], points[i], points[nx], lc[i], nc[i]);
-            // lc[i].print(), nc[i].print();
         }
         equations = (Equation3D*) std:: malloc(sizeof(Equation3D) * n_points);
         for(int i = 0; i < n_points; ++ i) {
@@ -233,7 +213,6 @@ public:
         double t = (y - ray.o.y) / ray.d.y;
         if(t < 0 || (t > ut && ut > eps)) return;
         if(bezier2d.in(Vector2D(ray.o.x + ray.d.x * t, ray.o.z + ray.d.z * t))) {
-            // std:: cout << "!" << std:: endl;
             ut = t, gn = is_front ? Vector3D(0, -1, 0) : Vector3D(0, 1, 0);
         }
         return;
@@ -243,7 +222,7 @@ public:
         Vector2D gn2d;
         double t = bezier2d.solve(ray, range_y, gn2d);
         if(t > 0) {
-            gn = Vector3D(gn2d.x, 0, gn2d.y); // (ray.o + ray.d * t).print();
+            gn = Vector3D(gn2d.x, 0, gn2d.y);
             if((ray.o + ray.d * t).z < 0) {
                 std:: cout << std:: endl;
                 (ray.o + ray.d * t).print();

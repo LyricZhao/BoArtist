@@ -30,7 +30,7 @@ public:
     }
 
     bool none() const {
-        return width == 0;
+        return path == "";
     }
 
     Color_F pixel(int x, int y) const {
